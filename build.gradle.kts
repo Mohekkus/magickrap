@@ -20,6 +20,23 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
+
+    //Ktor core
+    implementation("io.ktor:ktor-client-core:2.3.7")
+    implementation("io.ktor:ktor-client-java:2.3.7")
+
+    //ktor logging
+    implementation("ch.qos.logback:logback-classic:1.4.12")
+    implementation("io.ktor:ktor-client-logging:2.3.7")
+
+    //ktor content negotiator
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+    
+    //Serialization
+    implementation("io.ktor:ktor-serialization-gson:2.3.7")
+
+    //Gson
+    implementation ("com.google.code.gson:gson:2.10.1")
 }
 
 compose.desktop {
