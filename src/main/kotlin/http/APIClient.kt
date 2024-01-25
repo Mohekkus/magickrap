@@ -29,6 +29,8 @@ object APIClient {
             }
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Any)
+
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
         }
         install(Logging) {
             logger = Logger.DEFAULT
