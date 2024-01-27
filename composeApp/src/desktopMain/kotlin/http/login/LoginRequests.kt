@@ -3,6 +3,7 @@ package http.login
 import http.APIClient
 import http.login.model.request.CodeLoginRequest
 import http.login.model.request.NormalLoginRequest
+import http.login.model.request.QRLoginRequest
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -35,6 +36,20 @@ class LoginRequests {
                     code = code
                 )
             )
+        }
+    }
+
+    suspend fun QRLogin(encrypted: String): HttpResponse {
+        return APIClient.instance.post {
+            url {
+                host = ""
+                appendEncodedPathSegments("auth", "code", "generate-login-code")
+            }
+//            setBody(
+//                QRLoginRequest(
+//
+//                )
+//            )
         }
     }
 }

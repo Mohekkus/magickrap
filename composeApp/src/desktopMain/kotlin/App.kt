@@ -1,6 +1,6 @@
-import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -10,28 +10,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
 import com.google.gson.Gson
 import etc.Global
 import http.login.LoginRequests
-import http.login.model.request.CodeLoginRequest
 import http.login.model.response.CodeLoginError
 import http.login.model.response.CodeLoginResponse
 import http.login.model.response.NormalLoginError
 import http.login.model.response.NormalLoginResponse
-import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
-@Preview
 fun App() {
+
     var text by remember { mutableStateOf("") }
 
     MaterialTheme {
@@ -143,7 +142,7 @@ fun App() {
                                 LoginRequests().codeLogin(code = code).let {
                                     try {
                                         if (it.status.value in 200..299)
-                                            Gson().fromJson(it.bodyAsText(), CodeLoginResponse::class.java).let {success ->
+                                            Gson().fromJson(it.bodyAsText(), CodeLoginResponse::class.java).let { success ->
                                                 text = success.data?.accessToken.toString()
                                             }
                                         else
@@ -163,11 +162,5 @@ fun App() {
             }
             Text(text)
         }
-    }
-}
-
-fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
-        App()
     }
 }

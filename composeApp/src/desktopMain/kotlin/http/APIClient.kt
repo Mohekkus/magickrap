@@ -23,7 +23,7 @@ object APIClient {
             }
         }
         install(DefaultRequest) {
-            host = "api-staging.auxonode.com"
+            host = "api-staging.auxonode.com/api"
             url {
                 protocol = URLProtocol.HTTPS
             }

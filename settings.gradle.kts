@@ -1,13 +1,21 @@
+rootProject.name = "desktop"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     repositories {
-        gradlePluginPortal()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    }
-
-    plugins {
-        kotlin("jvm").version(extra["kotlin.version"] as String)
-        id("org.jetbrains.compose").version(extra["compose.version"] as String)
+        google()
+        gradlePluginPortal()
+        mavenCentral()
     }
 }
 
-rootProject.name = "desktop"
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
+}
+
+include(":composeApp")
