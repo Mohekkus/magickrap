@@ -159,8 +159,11 @@ fun App() {
                         Text("Submit Code")
                     }
                 }
+                Text(text)
             }
-            Text(text)
+            Row {
+
+            }
         }
     }
 }

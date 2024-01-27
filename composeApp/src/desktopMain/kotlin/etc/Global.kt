@@ -5,6 +5,7 @@ import java.util.regex.Pattern.compile
 
 object Global {
 
+    val URL_PUBLIC_IP = "https://checkip.amazonaws.com"
     val emailRegex: Pattern = compile(
         "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
                 "\\@" +
