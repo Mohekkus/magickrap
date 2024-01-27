@@ -4,7 +4,7 @@ package http.login.model.request
 import com.google.gson.annotations.SerializedName
 import etc.DeviceInfo
 
-data class QRLoginRequest(
+data class QRLoginPayload(
     @SerializedName("country")
     var country: String = DeviceInfo.instance.country, // ID
     @SerializedName("device_id")

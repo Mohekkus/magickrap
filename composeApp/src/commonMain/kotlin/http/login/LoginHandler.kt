@@ -1,8 +1,10 @@
 package http.login
 
-import http.base.GenericRequest
+import etc.Global.toDataClass
+import http.base.GenericHandler
 import http.base.RequestsInterface
-import http.login.model.request.QRLoginRequest
+import http.login.model.request.QRLoginPayload
+import http.login.model.response.*
 
 class LoginHandler {
 
@@ -11,35 +13,50 @@ class LoginHandler {
         private val login = RequestsInterface.login
     }
 
-    fun login(username: String, password: String, onFinished :() -> Unit) {
-        GenericRequest.runner(
+    fun login(username: String, password: String, onFinished : () -> Unit) {
+        GenericHandler.runner(
             {
                 login.normalLogin(username, password)
             },
             {
-
+                val result = it.first.toDataClass(
+                    if (it.second)
+                        NormalLoginResponse::class.java
+                    else
+                        NormalLoginError::class.java
+                )
             }
         )
     }
 
     fun login(code: String, onFinished: () -> Unit) {
-        GenericRequest.runner(
+        GenericHandler.runner(
             {
                 login.codeLogin(code)
             },
             {
-
+                val result = it.first.toDataClass(
+                    if (it.second)
+                        CodeLoginResponse::class.java
+                    else
+                        CodeLoginError::class.java
+                )
             }
         )
     }
 
-    fun login(qrBody: QRLoginRequest? = null, onFinished: () -> Unit) {
-        GenericRequest.runner(
+    fun login(qrBody: QRLoginPayload? = null, isCreating: Boolean? = false, onFinished: () -> Unit) {
+        GenericHandler.runner(
             {
                 login.qrLogin(qrBody)
             },
             {
-
+                val result = it.first.toDataClass(
+                    if (isCreating == true)
+                        QRLoginCreatedResponse::class.java
+                    else
+                        QRLoginSuccessResponse::class.java
+                )
             }
         )
     }

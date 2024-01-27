@@ -1,10 +1,10 @@
 package http.login
 
 import etc.Global.extend
-import http.base.GenericRequest
-import http.login.model.request.CodeLoginRequest
-import http.login.model.request.NormalLoginRequest
-import http.login.model.request.QRLoginRequest
+import http.base.GenericHandler
+import http.login.model.request.CodeLoginPayload
+import http.login.model.request.NormalLoginPayload
+import http.login.model.request.QRLoginPayload
 import io.ktor.client.statement.*
 
 class LoginRequests {
@@ -17,11 +17,11 @@ class LoginRequests {
     }
 
     suspend fun normalLogin(username: String, password: String): HttpResponse {
-        return GenericRequest.post(
+        return GenericHandler.post(
             authPath.extend(
                 listOf("login")
             ),
-            NormalLoginRequest(
+            NormalLoginPayload(
                 identity = username,
                 password = password
             )
@@ -29,18 +29,18 @@ class LoginRequests {
     }
 
     suspend fun codeLogin(code: String): HttpResponse {
-        return GenericRequest.post(
+        return GenericHandler.post(
             codePath.extend(
                 listOf("code")
             ),
-            CodeLoginRequest(
+            CodeLoginPayload(
                 code
             )
         )
     }
 
-    suspend fun qrLogin(qrBody: QRLoginRequest? = null): HttpResponse {
-        return GenericRequest.post(
+    suspend fun qrLogin(qrBody: QRLoginPayload? = null): HttpResponse {
+        return GenericHandler.post(
             codePath.extend(
                 listOf("generate-login-code")
             ),

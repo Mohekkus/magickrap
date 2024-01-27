@@ -1,9 +1,9 @@
-package http.certificate.model.request
+package http.certificate.model.payload
 
 
 import com.google.gson.annotations.SerializedName
 
-data class AvailableServerRequest(
+data class AvailableServerPayload(
     @SerializedName("filter[city]")
     var filtercity: String? = null, // Helsinki
     @SerializedName("filter[continent]")

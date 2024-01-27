@@ -1,12 +1,10 @@
 package http.certificate
 
 import etc.Global.extend
-import http.base.GenericRequest
-import http.base.KtorClient
-import http.certificate.model.request.AvailableServerRequest
-import io.ktor.client.request.*
+import http.base.GenericHandler
+import http.certificate.model.payload.AvailableServerPayload
+import http.certificate.model.payload.CertificatePayload
 import io.ktor.client.statement.*
-import io.ktor.http.*
 
 class CertificateRequests {
 
@@ -16,11 +14,18 @@ class CertificateRequests {
         private val certPath = listOf("certificate")
     }
 
-    suspend fun getAvailableServer(requestBody: AvailableServerRequest? = null): HttpResponse {
-        return GenericRequest.post(
+    suspend fun getAvailableServer(requestBody: AvailableServerPayload? = null): HttpResponse {
+        return GenericHandler.post(
             certPath.extend(
                 listOf("availserver")
             ),
+            requestBody
+        )
+    }
+
+    suspend fun getCertificate(requestBody: CertificatePayload? = null): HttpResponse {
+        return GenericHandler.post(
+            certPath,
             requestBody
         )
     }

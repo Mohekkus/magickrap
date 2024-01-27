@@ -1,5 +1,7 @@
 package etc
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.util.regex.Pattern
 import java.util.regex.Pattern.compile
 
@@ -16,6 +18,8 @@ object Global {
                 ")+"
     )
 
+
+    fun String.toDataClass(classKType: Class<*>) = Gson().fromJson(this, classKType)
 
     fun List<String>.extend(collection: List<String>): List<String> {
         return toMutableList().apply {

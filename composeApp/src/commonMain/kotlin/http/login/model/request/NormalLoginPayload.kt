@@ -2,7 +2,7 @@ package http.login.model.request
 
 import com.google.gson.annotations.SerializedName
 
-data class NormalLoginRequest(
+data class NormalLoginPayload(
 
 	@field:SerializedName("password")
 	val password: String? = null,
