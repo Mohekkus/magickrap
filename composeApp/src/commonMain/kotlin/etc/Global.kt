@@ -15,4 +15,11 @@ object Global {
                 "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
                 ")+"
     )
+
+
+    fun List<String>.extend(collection: List<String>): List<String> {
+        return toMutableList().apply {
+            addAll(collection)
+        }.toList()
+    }
 }

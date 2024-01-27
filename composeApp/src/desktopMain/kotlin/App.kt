@@ -1,5 +1,3 @@
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -10,12 +8,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import etc.Global
-import http.login.LoginRequests
+import http.ApiHandler
+import http.base.RequestsInterface
 import http.login.model.response.CodeLoginError
 import http.login.model.response.CodeLoginResponse
 import http.login.model.response.NormalLoginError
@@ -25,7 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -81,9 +78,12 @@ fun App() {
                                 return@Button
                             }
 
+                            ApiHandler.authentication.login(username, password) {
+
+                            }
 
                             CoroutineScope(Dispatchers.Default).launch {
-                                val request = LoginRequests().normalLogin(username, password)
+                                val request = RequestsInterface.login.normalLogin(username, password)
                                 request.let { response ->
                                     try {
                                         if (response.status.value in 200..299)
@@ -139,7 +139,7 @@ fun App() {
                             }
 
                             CoroutineScope(Dispatchers.Default).launch {
-                                LoginRequests().codeLogin(code = code).let {
+                                RequestsInterface.login.codeLogin(code = code).let {
                                     try {
                                         if (it.status.value in 200..299)
                                             Gson().fromJson(it.bodyAsText(), CodeLoginResponse::class.java).let { success ->
@@ -162,7 +162,28 @@ fun App() {
                 Text(text)
             }
             Row {
-
+                Button(
+                    onClick = {
+                        CoroutineScope(Dispatchers.Default).launch {
+                            RequestsInterface.login.qrLogin().let {
+                                try {
+                                    if (it.status.value in 200..299)
+                                        Gson().fromJson(it.bodyAsText(), CodeLoginResponse::class.java).let { success ->
+                                            text = success.data?.accessToken.toString()
+                                        }
+                                    else
+                                        Gson().fromJson(it.bodyAsText(), CodeLoginError::class.java).let { failed ->
+                                            text = failed.meta?.message.toString()
+                                        }
+                                } catch (e: Exception) {
+                                    text = "Login Failed Generic"
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    Text("QR")
+                }
             }
         }
     }
