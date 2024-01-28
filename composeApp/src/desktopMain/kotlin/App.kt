@@ -10,15 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
 import etc.Global
 import http.ApiHandler
-import http.base.RequestsInterface
-import http.login.model.response.CodeLoginError
-import http.login.model.response.CodeLoginResponse
-import http.login.model.response.NormalLoginError
-import http.login.model.response.NormalLoginResponse
-import io.ktor.client.statement.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -78,29 +71,7 @@ fun App() {
                                 return@Button
                             }
 
-                            ApiHandler.authentication.login(username, password) {
-
-                            }
-
-                            CoroutineScope(Dispatchers.Default).launch {
-                                val request = RequestsInterface.login.normalLogin(username, password)
-                                request.let { response ->
-                                    try {
-                                        if (response.status.value in 200..299)
-                                            Gson().fromJson(request.bodyAsText(), NormalLoginResponse::class.java).let { success ->
-                                                text = success.data?.accessToken.toString()
-                                            }
-                                        else
-                                            Gson().fromJson(request.bodyAsText(), NormalLoginError::class.java).let { failed ->
-                                                failed.data?.forEach {
-                                                    text += it
-                                                }
-                                            }
-                                    } catch (e: Exception) {
-                                        text = "Login Failed Generic"
-                                    }
-                                }
-                            }
+                            ApiHandler.authentication.nlogin(username, password)
                         }
                     ) {
                         Text("Submit Credential")
@@ -138,21 +109,8 @@ fun App() {
                                 }
                             }
 
-                            CoroutineScope(Dispatchers.Default).launch {
-                                RequestsInterface.login.codeLogin(code = code).let {
-                                    try {
-                                        if (it.status.value in 200..299)
-                                            Gson().fromJson(it.bodyAsText(), CodeLoginResponse::class.java).let { success ->
-                                                text = success.data?.accessToken.toString()
-                                            }
-                                        else
-                                            Gson().fromJson(it.bodyAsText(), CodeLoginError::class.java).let { failed ->
-                                                text = failed.meta?.message.toString()
-                                            }
-                                    } catch (e: Exception) {
-                                        text = "Login Failed Generic"
-                                    }
-                                }
+                            ApiHandler.authentication.clogin(code) {
+
                             }
                         }
                     ) {
@@ -164,22 +122,7 @@ fun App() {
             Row {
                 Button(
                     onClick = {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            RequestsInterface.login.qrLogin().let {
-                                try {
-                                    if (it.status.value in 200..299)
-                                        Gson().fromJson(it.bodyAsText(), CodeLoginResponse::class.java).let { success ->
-                                            text = success.data?.accessToken.toString()
-                                        }
-                                    else
-                                        Gson().fromJson(it.bodyAsText(), CodeLoginError::class.java).let { failed ->
-                                            text = failed.meta?.message.toString()
-                                        }
-                                } catch (e: Exception) {
-                                    text = "Login Failed Generic"
-                                }
-                            }
-                        }
+                        ApiHandler.certificate.generateCertificate("wireguard", "0001")
                     }
                 ) {
                     Text("QR")

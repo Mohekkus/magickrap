@@ -1,4 +1,4 @@
-package http.login
+package http.login.implementation
 
 import etc.Global.extend
 import http.base.GenericHandler
@@ -7,7 +7,7 @@ import http.login.model.request.NormalLoginPayload
 import http.login.model.request.QRLoginPayload
 import io.ktor.client.statement.*
 
-class LoginRequests {
+class LoginRequests : LoginInterface {
 
     companion object {
         val instance = LoginRequests()
@@ -16,7 +16,7 @@ class LoginRequests {
         private val codePath = authPath.extend(listOf("code"))
     }
 
-    suspend fun normalLogin(username: String, password: String): HttpResponse {
+    override suspend fun normalLogin(username: String, password: String): HttpResponse {
         return GenericHandler.post(
             authPath.extend(
                 listOf("login")
@@ -28,10 +28,10 @@ class LoginRequests {
         )
     }
 
-    suspend fun codeLogin(code: String): HttpResponse {
+    override suspend fun codeLogin(code: String): HttpResponse {
         return GenericHandler.post(
             codePath.extend(
-                listOf("code")
+                listOf("confirm-login-code")
             ),
             CodeLoginPayload(
                 code
@@ -39,7 +39,7 @@ class LoginRequests {
         )
     }
 
-    suspend fun qrLogin(qrBody: QRLoginPayload? = null): HttpResponse {
+    override suspend fun qrLogin(qrBody: QRLoginPayload?): HttpResponse {
         return GenericHandler.post(
             codePath.extend(
                 listOf("generate-login-code")

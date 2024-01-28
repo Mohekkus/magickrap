@@ -1,5 +1,7 @@
 package http.base
 
+import http.certificate.implementation.CertificateRequests
+import http.login.implementation.LoginRequests
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
@@ -10,9 +12,13 @@ import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import java.text.DateFormat
 
-object KtorClient {
+class ClientModule {
 
-    val instance = HttpClient(Java) {
+    companion object {
+        val instance = ClientModule()
+    }
+
+    val client = HttpClient(Java) {
         install(ContentNegotiation) {
             gson {
                 setDateFormat(DateFormat.LONG)
@@ -26,12 +32,15 @@ object KtorClient {
             }
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Any)
-
             header(HttpHeaders.ContentType, ContentType.Application.Json)
         }
+        install(HttpTimeout)
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.ALL
         }
     }
+
+    val login = LoginRequests.instance
+    val certificate = CertificateRequests.instance
 }

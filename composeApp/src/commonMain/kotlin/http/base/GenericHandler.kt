@@ -1,37 +1,56 @@
 package http.base
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import http.login.model.response.NormalLoginError
-import http.login.model.response.NormalLoginResponse
+import http.base.response.ResponseStatus
+import http.base.response.ResponseWrapper
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.lang.reflect.TypeVariable
-import kotlin.reflect.KType
+import java.util.concurrent.TimeoutException
 
 object GenericHandler {
-    fun runner(requests: suspend () -> HttpResponse, onComplete: (Pair<String, Boolean>) -> Unit) {
+    fun runner(requests: suspend () -> HttpResponse, callback: (ResponseWrapper<*>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
-            onComplete(
-                requests().validation()
-            )
+            try {
+                requests().apply {
+                    callback(
+                        when (status) {
+                            HttpStatusCode.OK -> ResponseWrapper.success(bodyAsText())
+                            else -> ResponseWrapper.error(message = bodyAsText())
+                        }
+                    )
+                }
+            } catch (e : TimeoutException) {
+                callback(
+                    ResponseWrapper<Any>(ResponseStatus.ERROR, message = "Request Time Out")
+                )
+            } catch (e: Exception) {
+                callback(
+                    ResponseWrapper<Any>(ResponseStatus.ERROR, message = e.message)
+                )
+            }
         }
     }
 
     suspend fun post(appendedPath: List<String>, body: Any?): HttpResponse {
-        return KtorClient.instance.post {
+        return ClientModule.instance.client.post {
             url.appendEncodedPathSegments(appendedPath)
             setBody(body)
         }
     }
 
-    private suspend fun HttpResponse.validation() =
-        if (status.value in 200..299)
-            Pair(bodyAsText(), true)
-        else
-            Pair(bodyAsText(), false)
+    suspend fun get(appendedPath: List<String>, body: MutableMap<String, String>?): HttpResponse {
+        return ClientModule.instance.client.get {
+            url.apply {
+                appendEncodedPathSegments(appendedPath)
+                body?.forEach {
+                    parameters.append(it.key, it.value)
+                }
+            }
+        }
+    }
 }
