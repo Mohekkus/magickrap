@@ -7,5 +7,4 @@ object ApiHandler {
 
     val authentication = LoginHandler.instance
     val certificate = CertificateHandler.instance
-
 }

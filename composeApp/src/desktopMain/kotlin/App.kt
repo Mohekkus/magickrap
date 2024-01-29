@@ -12,9 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import etc.Global
 import http.ApiHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
@@ -71,7 +68,7 @@ fun App() {
                                 return@Button
                             }
 
-                            ApiHandler.authentication.nlogin(username, password)
+                            ApiHandler.authentication.login(username, password)
                         }
                     ) {
                         Text("Submit Credential")
@@ -109,7 +106,7 @@ fun App() {
                                 }
                             }
 
-                            ApiHandler.authentication.clogin(code) {
+                            ApiHandler.authentication.login(code) {
 
                             }
                         }

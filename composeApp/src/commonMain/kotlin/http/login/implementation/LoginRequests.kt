@@ -4,6 +4,7 @@ import etc.Global.extend
 import http.base.GenericHandler
 import http.login.model.request.CodeLoginPayload
 import http.login.model.request.NormalLoginPayload
+import http.login.model.request.OAuthPayload
 import http.login.model.request.QRLoginPayload
 import io.ktor.client.statement.*
 
@@ -45,6 +46,15 @@ class LoginRequests : LoginInterface {
                 listOf("generate-login-code")
             ),
             qrBody
+        )
+    }
+
+    override suspend fun oauthLogin(provider: String, body: OAuthPayload): HttpResponse {
+        return GenericHandler.post(
+            authPath.extend(
+                listOf("oauth2", provider)
+            ),
+            body
         )
     }
 }

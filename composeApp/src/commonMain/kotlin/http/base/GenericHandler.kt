@@ -2,6 +2,7 @@ package http.base
 
 import http.base.response.ResponseStatus
 import http.base.response.ResponseWrapper
+import http.login.model.response.NormalLoginResponse
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
