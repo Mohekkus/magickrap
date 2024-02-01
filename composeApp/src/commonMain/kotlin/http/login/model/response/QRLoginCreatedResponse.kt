@@ -2,12 +2,13 @@ package http.login.model.response
 
 
 import com.google.gson.annotations.SerializedName
+import http.base.response.GenericMetaPayload
 
 data class QRLoginCreatedResponse(
     @SerializedName("data")
     var `data`: Data?,
     @SerializedName("meta")
-    var meta: Meta?
+    var meta: GenericMetaPayload?
 ) {
     data class Data(
         @SerializedName("accepted")
@@ -25,15 +26,6 @@ data class QRLoginCreatedResponse(
         @SerializedName("os")
         var os: String?, // Mac OS X 10.6.2
         @SerializedName("timeout")
-        var timeout: Int? // 1677507724
-    )
-
-    data class Meta(
-        @SerializedName("code")
-        var code: Int?, // 200
-        @SerializedName("message")
-        var message: String?, // operation successfully
-        @SerializedName("status")
-        var status: String? // success
+        var timeout: Long? // 1677507724
     )
 }

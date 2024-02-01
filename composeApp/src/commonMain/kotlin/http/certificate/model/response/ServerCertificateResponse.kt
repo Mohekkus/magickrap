@@ -2,15 +2,15 @@ package http.certificate.model.response
 
 
 import com.google.gson.annotations.SerializedName
-import http.base.MetaPayload
+import http.base.response.GenericMetaPayload
 
-data class AvailableCertificateResponse(
+data class ServerCertificateResponse(
     @SerializedName("data")
-    var `data`: Data?,
+    var `data`: ServerCertificateData?,
     @SerializedName("meta")
-    var meta: MetaPayload?
+    var meta: GenericMetaPayload?
 ) {
-    data class Data(
+    data class ServerCertificateData(
         @SerializedName("current_page")
         var currentPage: Int?, // 2
         @SerializedName("first_page_url")
@@ -18,7 +18,7 @@ data class AvailableCertificateResponse(
         @SerializedName("from")
         var from: Int?, // 16
         @SerializedName("items")
-        var items: List<Item?>?,
+        var items: List<ServerCertificateItem?>?,
         @SerializedName("las_page")
         var lasPage: Int?, // 1
         @SerializedName("last_page_url")
@@ -36,7 +36,9 @@ data class AvailableCertificateResponse(
         @SerializedName("total")
         var total: Int? // 500
     ) {
-        data class Item(
+        data class ServerCertificateItem(
+            @field:SerializedName("icon_url")
+            val iconUrl: String?,
             @SerializedName("city")
             var city: String?, // Helsinki
             @SerializedName("continent")

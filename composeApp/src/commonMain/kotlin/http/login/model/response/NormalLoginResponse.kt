@@ -2,13 +2,13 @@ package http.login.model.response
 
 
 import com.google.gson.annotations.SerializedName
-import http.base.MetaPayload
+import http.base.response.GenericMetaPayload
 
 data class NormalLoginResponse(
     @SerializedName("data")
     var `data`: NormalLoginData?,
     @SerializedName("meta")
-    var meta: MetaPayload?
+    var meta: GenericMetaPayload?
 ) {
     data class NormalLoginData(
         @SerializedName("access_token")

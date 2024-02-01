@@ -2,12 +2,13 @@ package http.login.model.response
 
 
 import com.google.gson.annotations.SerializedName
+import http.base.response.GenericMetaPayload
 
 data class OAuth2LoginResponse(
     @SerializedName("data")
     var `data`: Data?,
     @SerializedName("meta")
-    var meta: Meta?
+    var meta: GenericMetaPayload?
 ) {
     data class Data(
         @SerializedName("access_token")
@@ -20,14 +21,5 @@ data class OAuth2LoginResponse(
         var iat: Int?, // 1666001884
         @SerializedName("token_type")
         var tokenType: String? // bearer
-    )
-
-    data class Meta(
-        @SerializedName("code")
-        var code: Int?, // 200
-        @SerializedName("message")
-        var message: String?, // operation successfully
-        @SerializedName("status")
-        var status: String? // success
     )
 }

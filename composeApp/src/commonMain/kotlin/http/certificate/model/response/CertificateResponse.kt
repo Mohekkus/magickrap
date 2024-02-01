@@ -1,14 +1,15 @@
 package http.certificate.model.response
 
 
+import CertificateDocument
 import com.google.gson.annotations.SerializedName
-import http.base.MetaPayload
+import http.base.response.GenericMetaPayload
 
 data class CertificateResponse(
     @SerializedName("data")
     var `data`: Data?,
     @SerializedName("meta")
-    var meta: MetaPayload?
+    var meta: GenericMetaPayload?
 ) {
     data class Data(
         @SerializedName("current_page")
@@ -38,7 +39,7 @@ data class CertificateResponse(
     ) {
         data class Item(
             @SerializedName("document")
-            var document: Document?,
+            var document: CertificateDocument?,
             @SerializedName("expiration")
             var expiration: Long?, // 1676480400000
             @SerializedName("last_connected")
@@ -48,7 +49,6 @@ data class CertificateResponse(
             @SerializedName("server")
             var server: Server?
         ) {
-            class Document
 
             data class Server(
                 @SerializedName("city")

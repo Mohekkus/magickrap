@@ -1,10 +1,10 @@
-package http.login.model.response
+package http.forgot.model.response
 
 
 import com.google.gson.annotations.SerializedName
 import http.base.response.GenericMetaPayload
 
-data class QRLoginSuccessResponse(
+data class ResetPasswordResponse(
     @SerializedName("data")
     var `data`: Data?,
     @SerializedName("meta")

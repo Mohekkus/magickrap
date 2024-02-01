@@ -1,7 +1,5 @@
 package etc
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.util.regex.Pattern
 import java.util.regex.Pattern.compile
 import kotlin.reflect.full.memberProperties
@@ -21,7 +19,6 @@ object Global {
     )
 
 
-    fun String.toDataClass(classKType: Class<*>) = Gson().fromJson(this, classKType)
     fun List<String>.extend(collection: List<String>): List<String> {
         return toMutableList().apply {
             addAll(collection)
@@ -32,9 +29,14 @@ object Global {
 
         T::class.memberProperties.forEach { property ->
             property.isAccessible = true
-            map[property.name] = property.get(this).toString()
+            if (property.get(this) != null)
+                map[property.name] = property.get(this).toString()
         }
 
         return map
+    }
+
+    inline fun <reified T: Any> isType() {
+
     }
 }

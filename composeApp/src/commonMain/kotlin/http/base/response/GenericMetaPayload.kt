@@ -1,9 +1,9 @@
-package http.base
+package http.base.response
 
 import com.google.gson.annotations.SerializedName
 
 
-data class MetaPayload(
+data class GenericMetaPayload(
     @SerializedName("code")
     var code: Int?,
     @SerializedName("message")

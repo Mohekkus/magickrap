@@ -1,4 +1,4 @@
-package http.base.response
+package http.base.wrapper
 
 
 data class ResponseWrapper<out T>(

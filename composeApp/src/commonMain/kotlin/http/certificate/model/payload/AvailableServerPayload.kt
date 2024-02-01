@@ -19,7 +19,7 @@ data class AvailableServerPayload(
     @SerializedName("filter[name]")
     var filtername: String? = null, // Finland-1
     @SerializedName("filter[serviceable]")
-    var filterserviceable: String? = null, // true
+    var filterserviceable: Boolean? = true, // true
     @SerializedName("filter[type]")
     var filtertype: String? = null, // dynamic
     @SerializedName("page")

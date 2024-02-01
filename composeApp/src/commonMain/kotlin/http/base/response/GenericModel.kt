@@ -1,14 +1,13 @@
-package http.certificate.model.response
+package http.base.response
 
 
 import com.google.gson.annotations.SerializedName
-import http.base.MetaPayload
 
-data class AvailableCertificateError(
+data class GenericModel(
     @SerializedName("data")
     var `data`: Data?,
     @SerializedName("meta")
-    var meta: MetaPayload?
+    var meta: GenericMetaPayload?
 ) {
     class Data
 }

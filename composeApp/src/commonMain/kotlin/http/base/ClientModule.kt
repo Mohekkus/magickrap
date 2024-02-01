@@ -1,6 +1,7 @@
 package http.base
 
 import http.certificate.implementation.CertificateRequests
+import http.forgot.implementation.ForgotPasswordRequests
 import http.login.implementation.LoginRequests
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
@@ -43,4 +44,5 @@ class ClientModule {
 
     val login = LoginRequests.instance
     val certificate = CertificateRequests.instance
+    val forgot = ForgotPasswordRequests.instance
 }
