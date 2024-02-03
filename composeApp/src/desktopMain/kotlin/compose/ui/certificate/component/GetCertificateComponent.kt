@@ -96,6 +96,7 @@ fun getCertificateComponent(savedServer: ServerCertificateResponse.ServerCertifi
                 status = "Generate"
             },
             onSuccess = {
+                status = ""
                 certificate = it
             }
         )
@@ -107,6 +108,7 @@ fun getCertificateComponent(savedServer: ServerCertificateResponse.ServerCertifi
             onFailure = {
             },
             onSuccess = {
+                status = ""
                 // TODO
             }
         )
