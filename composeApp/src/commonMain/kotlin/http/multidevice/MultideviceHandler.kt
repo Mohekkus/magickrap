@@ -7,6 +7,7 @@ import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
 import http.multidevice.model.response.AuthorizeDeviceResponse
 import http.multidevice.model.response.GetAuthenticationCodeResponse
+import http.multidevice.model.response.ListedDeviceResponse
 
 class MultideviceHandler {
     companion object{
@@ -48,7 +49,7 @@ class MultideviceHandler {
         encrypted: String,
         authorize: Boolean,
         onFailure: (String) -> Unit,
-        onSuccess: (AuthorizeDeviceResponse) -> Unit
+        onSuccess: (ListedDeviceResponse) -> Unit
     ) {
         GenericHandler.runner(
             {
@@ -60,7 +61,7 @@ class MultideviceHandler {
                         if (it.data == null)
                             onFailure("Succeeded, but no data available")
                         else
-                            Gson().fromJson(it.data.toString(), AuthorizeDeviceResponse::class.java).apply {
+                            Gson().fromJson(it.data.toString(), ListedDeviceResponse::class.java).apply {
                                 onSuccess(this)
                             }
 
@@ -73,6 +74,21 @@ class MultideviceHandler {
                             }
 
                 }
+            }
+        )
+    }
+
+    fun listedDevice(
+        token: String,
+        onFailure: (String) -> Unit,
+        onSuccess: (AuthorizeDeviceResponse) -> Unit
+    ) {
+        GenericHandler.runner(
+            {
+                multidevice.listedDevices(token)
+            },
+            {
+
             }
         )
     }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="api_success_no_data">Succeeded, but no data available</entry>
+    <entry key="api_failure_no_data">There is no error messages available</entry>
+</properties>

@@ -36,7 +36,7 @@ object Global {
         return map
     }
 
-    inline fun <reified T: Any> isType() {
+    fun getResourcesString(alias: String) {
 
     }
 }
