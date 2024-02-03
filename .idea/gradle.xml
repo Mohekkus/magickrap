@@ -9,7 +9,8 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/composeApp" />
-            <option value="$PROJECT_DIR$/nativelib" />
+            <option value="$PROJECT_DIR$/composeApp/nativeMain" />
+            <option value="$PROJECT_DIR$/vpn" />
           </set>
         </option>
       </GradleProjectSettings>

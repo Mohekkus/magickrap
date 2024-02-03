@@ -37,11 +37,22 @@ object GenericHandler {
         }
     }
 
-    suspend fun post(appendedPath: List<String>, body: Any?): HttpResponse {
+    suspend fun post(token: String? = "", appendedPath: List<String>, body: Any? = null): HttpResponse {
         return ClientModule.instance.client.post {
+            header(HttpHeaders.Authorization, "Bearer $token")
             url.appendEncodedPathSegments(appendedPath)
-            setBody(body)
+
+            if (body != null)
+                setBody(body)
         }
+    }
+
+    suspend fun post(appendedPath: List<String>, body: Any? = null): HttpResponse {
+        return post(
+            token = "",
+            appendedPath = appendedPath,
+            body = body
+        )
     }
 
     suspend fun get(token: String? = "", appendedPath: List<String>, body: MutableMap<String, String>?): HttpResponse {

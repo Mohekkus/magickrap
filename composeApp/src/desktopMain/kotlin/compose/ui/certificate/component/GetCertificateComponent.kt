@@ -23,27 +23,32 @@ import http.certificate.model.response.ServerCertificateResponse
 
 
 @Composable
-fun getCertificateCall(servID: String, response: (Boolean, CertificateResponse?, String) -> Unit) {
+fun getCertificateCall(
+    servID: String,
+    onFailure: (String) -> Unit,
+    onSuccess: (CertificateResponse) -> Unit
+) {
     val token = LocalClipboardManager.current.getText().toString()
     val payload = CertificatePayload(
         filterserverId = servID
     )
 
-    ApiHandler.certificate.getCertificate(token, payload) { isFailed, message, data ->
-        if(!isFailed && data != null)
-            response(true, data, token)
-        else
-            response(isFailed, null, token)
-    }
+    ApiHandler.certificate.getCertificate(token, payload,
+        { onFailure(it) },
+        { onSuccess(it) }
+    )
 }
 
-fun generateCertificateCall(token: String,servID: String, response: (Boolean, GeneratedCertificateResponse?) -> Unit) {
-    ApiHandler.certificate.generateCertificate(token, "wireguard", servID) { isFailed, message, data ->
-        if(!isFailed && data != null)
-            response(true, data)
-        else
-            response(isFailed, null)
-    }
+@Composable
+fun generateCertificateCall(
+    servID: String,
+    onFailure: (String) -> Unit,
+    onSuccess: (GeneratedCertificateResponse) -> Unit
+) {
+    val token = LocalClipboardManager.current.getText().toString()
+    ApiHandler.certificate.generateCertificate(token, "wireguard", servID,
+        { onFailure(it) }, { onSuccess(it) }
+    )
 }
 
 @Preview
@@ -85,13 +90,24 @@ fun getCertificateComponent(savedServer: ServerCertificateResponse.ServerCertifi
     }
 
     if (certificate == null) {
-        getCertificateCall(savedServer.id ?: "") { success, data, token ->
-            if (success)
-                certificate = data
-//            else
-//                generateCertificateCall(token = token,savedServer.id ?: " ") { success, data ->
-//                    certificate = data
-//                }
-        }
+        getCertificateCall(
+            savedServer.id ?: "",
+            onFailure = {
+                status = "Generate"
+            },
+            onSuccess = {
+                certificate = it
+            }
+        )
     }
+
+    if (status == "Generate")
+        generateCertificateCall(
+            savedServer.id ?: "",
+            onFailure = {
+            },
+            onSuccess = {
+                // TODO
+            }
+        )
 }

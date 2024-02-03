@@ -19,8 +19,6 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
 }
 
-
-
 kotlin {
     jvm("desktop")
     
