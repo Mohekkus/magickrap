@@ -7,4 +7,5 @@ interface MultideviceInterface {
     suspend fun codeLogin(token: String): HttpResponse
     suspend fun processLogin(token: String, encrypted: String, authorize: Boolean): HttpResponse
     suspend fun listedDevices(token: String): HttpResponse
+    suspend fun revokeDevice(token: String, deviceId: String): HttpResponse
 }

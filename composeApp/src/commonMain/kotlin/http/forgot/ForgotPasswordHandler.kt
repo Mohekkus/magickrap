@@ -2,6 +2,7 @@ package http.forgot
 
 import com.google.gson.Gson
 import http.base.ClientModule
+import http.base.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
@@ -30,16 +31,16 @@ class ForgotPasswordHandler {
             when (it.status) {
                 ResponseStatus.SUCCESS ->
                     if (it.data == null)
-                        onFailure("No data returned, weird")
+                        onFailure(ErrorMessages.SUCCESS_NO_DATA.value())
                     else
                         onSuccess()
 
                 else ->
                     if (it.data == null)
-                        onFailure(it.message ?: "There is no error messages available")
+                        onFailure(it.message ?: ErrorMessages.FAILED.value())
                     else
                         Gson().fromJson(it.data.toString(), ForgotPasswordError::class.java).apply {
-                            onFailure(message ?: "There is no error messages available")
+                            onFailure(message ?: ErrorMessages.FAILED.value())
                         }
 
             }
@@ -58,7 +59,7 @@ class ForgotPasswordHandler {
             when (it.status) {
                 ResponseStatus.SUCCESS ->
                     if (it.data == null)
-                        onFailure("No data returned, weird")
+                        onFailure(ErrorMessages.SUCCESS_NO_DATA.value())
                     else
                         Gson().fromJson(it.data.toString(), OTPForgotPasswordResponse::class.java).apply {
                             onSuccess(this)
@@ -66,10 +67,10 @@ class ForgotPasswordHandler {
 
                 else ->
                     if (it.data == null)
-                        onFailure(it.message ?: "There is no error messages available")
+                        onFailure(it.message ?: ErrorMessages.FAILED.value())
                     else
                         Gson().fromJson(it.data.toString(), GenericModel::class.java).apply {
-                            onFailure(meta?.message ?: "There is no error messages available")
+                            onFailure(meta?.message ?: ErrorMessages.FAILED.value())
                         }
 
             }
@@ -90,7 +91,7 @@ class ForgotPasswordHandler {
             when (it.status) {
                 ResponseStatus.SUCCESS ->
                     if (it.data == null)
-                        onFailure("No data returned, weird")
+                        onFailure(ErrorMessages.SUCCESS_NO_DATA.value())
                     else
                         Gson().fromJson(it.data.toString(), ResetPasswordResponse::class.java).apply {
                             onSuccess(this)
@@ -98,10 +99,10 @@ class ForgotPasswordHandler {
 
                 else ->
                     if (it.data == null)
-                        onFailure(it.message ?: "There is no error messages available")
+                        onFailure(it.message ?: ErrorMessages.FAILED.value())
                     else
                         Gson().fromJson(it.data.toString(), CodeLoginError::class.java).apply {
-                            onFailure(meta?.message ?: "There is no error messages available")
+                            onFailure(meta?.message ?: ErrorMessages.FAILED.value())
                         }
             }
         }

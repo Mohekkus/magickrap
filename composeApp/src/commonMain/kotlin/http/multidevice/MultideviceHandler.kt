@@ -2,6 +2,7 @@ package http.multidevice
 
 import com.google.gson.Gson
 import http.base.ClientModule
+import http.base.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
@@ -26,7 +27,7 @@ class MultideviceHandler {
             when (it.status) {
                 ResponseStatus.SUCCESS ->
                     if (it.data == null)
-                        onFailure("Succeeded, but no data available")
+                        onFailure(ErrorMessages.SUCCESS_NO_DATA.value())
                     else
                         Gson().fromJson(it.data.toString(), GetAuthenticationCodeResponse::class.java).apply {
                             onSuccess(this)
@@ -34,10 +35,10 @@ class MultideviceHandler {
 
                 else ->
                     if (it.data == null)
-                        onFailure(it.message ?: "There is no error messages available")
+                        onFailure(it.message ?: ErrorMessages.FAILED.value())
                     else
                         Gson().fromJson(it.data.toString(), GenericModel::class.java).apply {
-                            onFailure(meta?.message ?: "There is no error messages available")
+                            onFailure(meta?.message ?: ErrorMessages.FAILED.value())
                         }
 
             }
@@ -49,11 +50,43 @@ class MultideviceHandler {
         encrypted: String,
         authorize: Boolean,
         onFailure: (String) -> Unit,
-        onSuccess: (ListedDeviceResponse) -> Unit
+        onSuccess: (AuthorizeDeviceResponse) -> Unit
     ) {
         GenericHandler.runner(
             {
                 multidevice.processLogin(token, encrypted, authorize)
+            },
+            {
+                when (it.status) {
+                    ResponseStatus.SUCCESS ->
+                        if (it.data == null)
+                            onFailure(ErrorMessages.SUCCESS_NO_DATA.value())
+                        else
+                            Gson().fromJson(it.data.toString(), AuthorizeDeviceResponse::class.java).apply {
+                                onSuccess(this)
+                            }
+
+                    else ->
+                        if (it.data == null)
+                            onFailure(it.message ?: ErrorMessages.FAILED.value())
+                        else
+                            Gson().fromJson(it.data.toString(), GenericModel::class.java).apply {
+                                onFailure(meta?.message ?: ErrorMessages.FAILED.value())
+                            }
+
+                }
+            }
+        )
+    }
+
+    fun listedDevice(
+        token: String,
+        onFailure: (String) -> Unit,
+        onSuccess: (ListedDeviceResponse) -> Unit
+    ) {
+        GenericHandler.runner(
+            {
+                multidevice.listedDevices(token)
             },
             {
                 when (it.status) {
@@ -78,17 +111,33 @@ class MultideviceHandler {
         )
     }
 
-    fun listedDevice(
+    fun revokeDevice(
         token: String,
+        deviceId: String,
         onFailure: (String) -> Unit,
-        onSuccess: (AuthorizeDeviceResponse) -> Unit
+        onSuccess: () -> Unit
     ) {
         GenericHandler.runner(
             {
-                multidevice.listedDevices(token)
+                multidevice.revokeDevice(token, deviceId)
             },
             {
+                when (it.status) {
+                    ResponseStatus.SUCCESS ->
+                        if (it.data == null)
+                            onFailure("Succeeded, but no data available")
+                        else
+                            onSuccess()
 
+                    else ->
+                        if (it.data == null)
+                            onFailure(it.message ?: "There is no error messages available")
+                        else
+                            Gson().fromJson(it.data.toString(), GenericModel::class.java).apply {
+                                onFailure(meta?.message ?: "There is no error messages available")
+                            }
+
+                }
             }
         )
     }

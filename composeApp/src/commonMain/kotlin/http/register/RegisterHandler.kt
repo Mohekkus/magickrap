@@ -2,6 +2,7 @@ package http.register
 
 import com.google.gson.Gson
 import http.base.ClientModule
+import http.base.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
@@ -30,7 +31,7 @@ class RegisterHandler {
                 when (it.status) {
                     ResponseStatus.SUCCESS ->
                         if (it.data == null)
-                            onFailure("Succeeded, but no data available")
+                            onFailure(ErrorMessages.SUCCESS_NO_DATA.value())
                         else
                             Gson().fromJson(it.data.toString(), RegisterPayload::class.java).apply {
                                 onSuccess(this)
@@ -38,10 +39,10 @@ class RegisterHandler {
 
                     else ->
                         if (it.data == null)
-                            onFailure(it.message ?: "There is no error messages available")
+                            onFailure(it.message ?: ErrorMessages.FAILED.value())
                         else
                             Gson().fromJson(it.data.toString(), GenericModel::class.java).apply {
-                                onFailure(meta?.message ?: "There is no error messages available")
+                                onFailure(meta?.message ?: ErrorMessages.FAILED.value())
                             }
 
                 }
