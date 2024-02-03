@@ -1,4 +1,4 @@
-package http.multidevice.model
+package http.multidevice.model.response
 
 
 import com.google.gson.annotations.SerializedName
