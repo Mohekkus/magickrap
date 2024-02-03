@@ -82,13 +82,12 @@ class LoginHandler {
     }
 
     fun login(
-        qrBody: QRLoginPayload? = null,
         onSuccess: (QRLoginCreatedResponse) -> Unit,
         onFailure: (String) -> Unit
     ) {
         GenericHandler.runner(
             {
-                login.qrLogin(qrBody)
+                login.qrLogin()
             },
             {
                 when (it.status) {

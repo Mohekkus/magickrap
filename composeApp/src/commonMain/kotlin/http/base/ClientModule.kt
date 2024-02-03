@@ -4,6 +4,7 @@ import http.certificate.implementation.CertificateRequests
 import http.forgot.implementation.ForgotPasswordRequests
 import http.login.implementation.LoginRequests
 import http.logout.implementation.LogoutRequest
+import http.multidevice.implementation.MultideviceRequests
 import http.register.implementation.RegisterRequest
 import http.token.implementation.RefreshTokenRequests
 import io.ktor.client.*
@@ -51,4 +52,5 @@ class ClientModule {
     val refresh = RefreshTokenRequests.instance
     val logout = LogoutRequest.instance
     val register = RegisterRequest.instance
+    val multidevice = MultideviceRequests.instance
 }

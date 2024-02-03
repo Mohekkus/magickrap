@@ -19,10 +19,10 @@ class LoginRequests : LoginInterface {
 
     override suspend fun normalLogin(username: String, password: String): HttpResponse {
         return GenericHandler.post(
-            authPath.extend(
+            appendedPath = authPath.extend(
                 listOf("login")
             ),
-            NormalLoginPayload(
+            body = NormalLoginPayload(
                 identity = username,
                 password = password
             )
@@ -31,30 +31,30 @@ class LoginRequests : LoginInterface {
 
     override suspend fun codeLogin(code: String): HttpResponse {
         return GenericHandler.post(
-            codePath.extend(
+            appendedPath = codePath.extend(
                 listOf("confirm-login-code")
             ),
-            CodeLoginPayload(
+            body = CodeLoginPayload(
                 code
             )
         )
     }
 
-    override suspend fun qrLogin(qrBody: QRLoginPayload?): HttpResponse {
+    override suspend fun qrLogin(): HttpResponse {
         return GenericHandler.post(
-            codePath.extend(
+            appendedPath = codePath.extend(
                 listOf("generate-login-code")
             ),
-            qrBody
+            body = QRLoginPayload()
         )
     }
 
     override suspend fun oauthLogin(provider: String, body: OAuthPayload): HttpResponse {
         return GenericHandler.post(
-            authPath.extend(
+            appendedPath = authPath.extend(
                 listOf("oauth2", provider)
             ),
-            body
+            body = body
         )
     }
 }

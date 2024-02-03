@@ -28,7 +28,6 @@ import kotlin.time.Duration.Companion.seconds
 
 fun apiCall(update: (QRLoginCreatedResponse) -> Unit) {
     ApiHandler.authentication.login(
-        QRLoginPayload(),
         onSuccess = {
             update(it)
         },

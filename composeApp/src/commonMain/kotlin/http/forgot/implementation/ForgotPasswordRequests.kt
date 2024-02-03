@@ -16,10 +16,10 @@ class ForgotPasswordRequests: ForgotPasswordInterface {
 
     override suspend fun forgotPassword(identity: String, provider: String): HttpResponse {
         return GenericHandler.post(
-            path.extend(
+            appendedPath = path.extend(
                 listOf("forgot-password")
             ),
-            ForgotPasswordPayload(
+            body = ForgotPasswordPayload(
                 identity, provider
             )
         )
@@ -27,10 +27,10 @@ class ForgotPasswordRequests: ForgotPasswordInterface {
 
     override suspend fun otpForgotPassword(identity: String, token: String): HttpResponse {
         return GenericHandler.post(
-            path.extend(
+            appendedPath = path.extend(
                 listOf("forgot-password-otp")
             ),
-            OTPForgotPasswordPayload(
+            body = OTPForgotPasswordPayload(
                 identity, token
             )
         )
@@ -43,10 +43,10 @@ class ForgotPasswordRequests: ForgotPasswordInterface {
         identity: String
     ): HttpResponse {
         return GenericHandler.post(
-            path.extend(
+            appendedPath = path.extend(
                 listOf("reset-password")
             ),
-            ResetPasswordPayload(
+            body = ResetPasswordPayload(
                 token, password, repassword, identity
             )
         )
