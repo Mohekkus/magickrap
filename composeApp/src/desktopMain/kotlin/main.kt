@@ -10,25 +10,12 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import compose.ui.certificate.CertificateComposable
 import compose.ui.login.LoginComposable
-import http.base.ClientModule
-import storage.QuickStorage
-import storage.QuickStorage.load
 
 
 val login = LoginComposable()
 val certificate = CertificateComposable()
 
-fun getToken() {
-    if (QuickStorage.has("token"))
-        "token".load { token: String? ->
-            if (token?.isEmpty() == false)
-                ClientModule.instance.bearerToken = token
-        }
-}
-
 fun main() = application {
-    getToken()
-
     var route by remember {
         mutableStateOf(
             MainRoute.LOGIN
@@ -40,12 +27,13 @@ fun main() = application {
             TextButton(
                 modifier = Modifier.wrapContentWidth(),
                 onClick = {
-                    when (route) {
+                    route = when (route) {
                         MainRoute.LOGIN -> {
-                            route = MainRoute.CERTIFICATE
+                            MainRoute.CERTIFICATE
                         }
+
                         MainRoute.CERTIFICATE -> {
-                            route = MainRoute.LOGIN
+                            MainRoute.LOGIN
                         }
                     }
                 }

@@ -13,10 +13,10 @@ object QuickStorage {
     fun Double.save(keys: String) = storage.putDouble(keys, this)
     fun Float.save(keys: String) = storage.putFloat(keys, this)
 
-    fun String.load(callback: (String?) -> Unit) = callback(storage.getStringOrNull(this))
-    fun String.load(callback: (Int?) -> Unit) = callback(storage.getIntOrNull(this))
-    fun String.load(callback: (Boolean?) -> Unit) = callback(storage.getBooleanOrNull(this))
-    fun String.load(callback: (Long?) -> Unit) = callback(storage.getLongOrNull(this))
-    fun String.load(callback: (Double?) -> Unit) = callback(storage.getDoubleOrNull(this))
-    fun String.load(callback: (Float?) -> Unit) = callback(storage.getFloatOrNull(this))
+    fun getString(keys: String) = storage.getStringOrNull(keys)
+    fun getInt(keys: String) = storage.getIntOrNull(keys)
+    fun getBoolean(keys: String) = storage.getBooleanOrNull(keys)
+    fun getLong(keys: String) = storage.getLongOrNull(keys)
+    fun getDouble(keys: String) = storage.getDoubleOrNull(keys)
+    fun getFloat(keys: String) = storage.getFloatOrNull(keys)
 }
