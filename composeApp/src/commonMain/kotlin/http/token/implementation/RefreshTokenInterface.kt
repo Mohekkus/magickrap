@@ -4,5 +4,5 @@ import io.ktor.client.statement.*
 
 interface RefreshTokenInterface {
 
-    suspend fun refreshToken(token: String): HttpResponse
+    suspend fun refreshToken(): HttpResponse
 }

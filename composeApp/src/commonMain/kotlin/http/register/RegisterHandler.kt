@@ -2,12 +2,11 @@ package http.register
 
 import com.google.gson.Gson
 import http.base.ClientModule
-import http.base.ErrorMessages
+import http.base.response.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
 import http.register.module.RegisterPayload
-import http.token.model.RefreshTokenResponse
 
 class RegisterHandler {
     companion object {

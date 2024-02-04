@@ -2,7 +2,7 @@ package http.forgot
 
 import com.google.gson.Gson
 import http.base.ClientModule
-import http.base.ErrorMessages
+import http.base.response.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
@@ -10,8 +10,6 @@ import http.forgot.model.response.ForgotPasswordError
 import http.forgot.model.response.OTPForgotPasswordResponse
 import http.forgot.model.response.ResetPasswordResponse
 import http.login.model.response.CodeLoginError
-import http.login.model.response.NormalLoginError
-import http.login.model.response.NormalLoginResponse
 
 class ForgotPasswordHandler {
 

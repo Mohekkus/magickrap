@@ -4,8 +4,8 @@ import io.ktor.client.statement.*
 
 interface MultideviceInterface {
 
-    suspend fun codeLogin(token: String): HttpResponse
-    suspend fun processLogin(token: String, encrypted: String, authorize: Boolean): HttpResponse
-    suspend fun listedDevices(token: String): HttpResponse
-    suspend fun revokeDevice(token: String, deviceId: String): HttpResponse
+    suspend fun codeLogin(): HttpResponse
+    suspend fun processLogin(encrypted: String, authorize: Boolean): HttpResponse
+    suspend fun listedDevices(): HttpResponse
+    suspend fun revokeDevice(deviceId: String): HttpResponse
 }

@@ -13,8 +13,8 @@ class RegisterRequest: RegisterInterface {
 
     override suspend fun registration(name: String, email: String, password: String, repassword: String): HttpResponse {
         return GenericHandler.post(
-            path,
-            RegisterPayload(
+            appendedPath = path,
+            body = RegisterPayload(
                 name = name,
                 email = email,
                 password = password,

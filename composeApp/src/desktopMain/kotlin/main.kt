@@ -10,12 +10,25 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import compose.ui.certificate.CertificateComposable
 import compose.ui.login.LoginComposable
+import http.base.ClientModule
+import storage.QuickStorage
+import storage.QuickStorage.load
 
 
 val login = LoginComposable()
 val certificate = CertificateComposable()
 
+fun getToken() {
+    if (QuickStorage.has("token"))
+        "token".load { token: String? ->
+            if (token?.isEmpty() == false)
+                ClientModule.instance.bearerToken = token
+        }
+}
+
 fun main() = application {
+    getToken()
+
     var route by remember {
         mutableStateOf(
             MainRoute.LOGIN

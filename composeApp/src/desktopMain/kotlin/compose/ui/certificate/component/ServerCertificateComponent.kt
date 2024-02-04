@@ -12,16 +12,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import compose.ui.reusable.cartItem
 import http.ApiHandler
+import http.certificate.model.payload.AvailableServerPayload
 import http.certificate.model.response.ServerCertificateResponse
 
 
 @Composable
 fun getServerCall(serverList: (ServerCertificateResponse) -> Unit) {
-    val token = LocalClipboardManager.current.getText().toString()
-    ApiHandler.certificate.availableServer(token) { isFailed, message, data ->
-        if(!isFailed && data != null)
-            serverList(data)
-    }
+    ApiHandler.certificate.availableServer(
+        AvailableServerPayload(),
+        onFailure = {},
+        onSuccess = {
+            serverList(it)
+        }
+    )
 }
 
 @Preview

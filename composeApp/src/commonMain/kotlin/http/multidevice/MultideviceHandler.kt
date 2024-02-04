@@ -2,7 +2,7 @@ package http.multidevice
 
 import com.google.gson.Gson
 import http.base.ClientModule
-import http.base.ErrorMessages
+import http.base.response.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
@@ -17,12 +17,11 @@ class MultideviceHandler {
     }
 
     fun generateCode(
-        token: String,
         onFailure: (String) -> Unit,
         onSuccess: (GetAuthenticationCodeResponse) -> Unit
     ) {
         GenericHandler.runner({
-            multidevice.codeLogin(token)
+            multidevice.codeLogin()
         }, {
             when (it.status) {
                 ResponseStatus.SUCCESS ->
@@ -46,7 +45,6 @@ class MultideviceHandler {
     }
 
     fun authorize(
-        token: String,
         encrypted: String,
         authorize: Boolean,
         onFailure: (String) -> Unit,
@@ -54,7 +52,7 @@ class MultideviceHandler {
     ) {
         GenericHandler.runner(
             {
-                multidevice.processLogin(token, encrypted, authorize)
+                multidevice.processLogin(encrypted, authorize)
             },
             {
                 when (it.status) {
@@ -80,13 +78,12 @@ class MultideviceHandler {
     }
 
     fun listedDevice(
-        token: String,
         onFailure: (String) -> Unit,
         onSuccess: (ListedDeviceResponse) -> Unit
     ) {
         GenericHandler.runner(
             {
-                multidevice.listedDevices(token)
+                multidevice.listedDevices()
             },
             {
                 when (it.status) {
@@ -112,14 +109,13 @@ class MultideviceHandler {
     }
 
     fun revokeDevice(
-        token: String,
         deviceId: String,
         onFailure: (String) -> Unit,
         onSuccess: () -> Unit
     ) {
         GenericHandler.runner(
             {
-                multidevice.revokeDevice(token, deviceId)
+                multidevice.revokeDevice(deviceId)
             },
             {
                 when (it.status) {

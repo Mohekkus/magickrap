@@ -23,6 +23,8 @@ class ClientModule {
         val instance = ClientModule()
     }
 
+    lateinit var bearerToken: String
+
     val client = HttpClient(Java) {
         install(ContentNegotiation) {
             gson {
@@ -38,6 +40,9 @@ class ClientModule {
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Any)
             header(HttpHeaders.ContentType, ContentType.Application.Json)
+
+            if (::bearerToken.isInitialized)
+                header(HttpHeaders.Authorization, "Bearer $bearerToken")
         }
         install(HttpTimeout)
         install(Logging) {

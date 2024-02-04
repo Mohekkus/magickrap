@@ -3,7 +3,7 @@ package http.certificate
 import GeneratedCertificateResponse
 import com.google.gson.Gson
 import http.base.ClientModule
-import http.base.ErrorMessages
+import http.base.response.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
@@ -12,8 +12,6 @@ import http.certificate.model.payload.CertificatePayload
 import http.certificate.model.payload.GeneratePayload
 import http.certificate.model.response.CertificateResponse
 import http.certificate.model.response.ServerCertificateResponse
-import http.login.model.response.NormalLoginError
-import http.login.model.response.NormalLoginResponse
 
 class CertificateHandler {
 
@@ -23,14 +21,13 @@ class CertificateHandler {
     }
 
     fun availableServer(
-        token: String,
         requestBody: AvailableServerPayload? = null,
         onFailure: (String) -> Unit,
         onSuccess: (ServerCertificateResponse) -> Unit
     ) {
         GenericHandler.runner(
             {
-                certificate.getAvailableServer(token, requestBody)
+                certificate.getAvailableServer( requestBody)
             },
             {
                 when (it.status) {
@@ -56,14 +53,13 @@ class CertificateHandler {
     }
 
     fun getCertificate(
-        token: String,
         requestBody: CertificatePayload? = null,
         onFailure: (String) -> Unit,
         onSuccess: (CertificateResponse) -> Unit
     ) {
         GenericHandler.runner(
             {
-                certificate.getCertificate(token, requestBody)
+                certificate.getCertificate( requestBody)
             }
         ) {
             when (it.status) {
@@ -88,7 +84,6 @@ class CertificateHandler {
     }
 
     fun generateCertificate(
-        token: String,
         protocol: String? = "openvpn_udp",
         servId: String,
         onFailure: (String) -> Unit,
@@ -96,7 +91,6 @@ class CertificateHandler {
     ) {
         GenericHandler.runner({
             certificate.generateCertificate(
-                token,
                 GeneratePayload(protocol, servId)
             )
         }) {

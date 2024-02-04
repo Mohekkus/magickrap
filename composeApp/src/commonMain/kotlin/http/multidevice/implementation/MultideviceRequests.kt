@@ -13,18 +13,16 @@ class MultideviceRequests: MultideviceInterface {
         private val devices = listOf("profile", "connected-devices")
     }
 
-    override suspend fun codeLogin(token: String): HttpResponse {
+    override suspend fun codeLogin(): HttpResponse {
         return GenericHandler.get(
-            token,
             appendedPath = code.extend(
                 listOf("confirm-login-code")
             )
         )
     }
 
-    override suspend fun processLogin(token: String, encrypted: String, authorize: Boolean): HttpResponse {
+    override suspend fun processLogin(encrypted: String, authorize: Boolean): HttpResponse {
         return GenericHandler.post(
-            token,
             appendedPath = code.extend(
                 listOf("authorizing-login-code")
             ),
@@ -34,16 +32,14 @@ class MultideviceRequests: MultideviceInterface {
         )
     }
 
-    override suspend fun listedDevices(token: String): HttpResponse {
+    override suspend fun listedDevices(): HttpResponse {
         return GenericHandler.get(
-            token = token,
             appendedPath = devices
         )
     }
 
-    override suspend fun revokeDevice(token: String, deviceId: String): HttpResponse {
+    override suspend fun revokeDevice(deviceId: String): HttpResponse {
         return GenericHandler.post(
-            token = token,
             appendedPath = devices.extend(
                 listOf("revoke")
             ),

@@ -11,7 +11,7 @@ class LogoutRequest: LogoutInterface {
 
     override suspend fun attempt(token: String): HttpResponse {
         return GenericHandler.post(
-            path
+            appendedPath = path
         )
     }
 }

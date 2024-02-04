@@ -55,6 +55,9 @@ kotlin {
 
             //Kamel
             implementation("media.kamel:kamel-image:0.9.1")
+
+            //Multiplatform-Settings
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.1.1")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

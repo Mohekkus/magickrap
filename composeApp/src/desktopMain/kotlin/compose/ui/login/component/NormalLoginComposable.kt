@@ -1,7 +1,6 @@
 package compose.ui.login.component
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -9,12 +8,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import compose.ui.reusable.minimalDialog
 import etc.Global
 import http.ApiHandler
+import http.base.ClientModule
+import http.base.response.ErrorMessages
+import storage.QuickStorage.save
 
 @Composable
 fun normalLoginComposable() {
@@ -73,7 +73,14 @@ fun normalLoginComposable() {
 
                 ApiHandler.authentication.login(username, password,
                     onSuccess = {
-                        result = it.data?.accessToken ?: "You made a call, it succeeded but no token! Amazed"
+                        if (it.data?.accessToken?.isEmpty() == true)
+                            warning = ErrorMessages.SUCCESS_NO_DATA.value()
+                        else {
+                            ClientModule.instance.bearerToken = it.data?.accessToken.toString().apply {
+                                save("token")
+                            }
+                            result = "Login Succeeded"
+                        }
                     },
                     onFailure = {
                         warning = it

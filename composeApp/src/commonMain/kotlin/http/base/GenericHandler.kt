@@ -37,9 +37,8 @@ object GenericHandler {
         }
     }
 
-    suspend fun post(token: String? = "", appendedPath: List<String>, body: Any? = null): HttpResponse {
+    suspend fun post(appendedPath: List<String>, body: Any? = null): HttpResponse {
         return ClientModule.instance.client.post {
-            header(HttpHeaders.Authorization, "Bearer $token")
             url.appendEncodedPathSegments(appendedPath)
 
             if (body != null)
@@ -47,10 +46,10 @@ object GenericHandler {
         }
     }
 
-    suspend fun get(token: String? = "", appendedPath: List<String>, body: MutableMap<String, String>? = null): HttpResponse {
+    suspend fun get(appendedPath: List<String>, body: MutableMap<String, String>? = null): HttpResponse {
         return ClientModule.instance.client.get {
             url.apply {
-                header(HttpHeaders.Authorization, "Bearer $token")
+//                header(HttpHeaders.Authorization, "Bearer $token")
                 appendEncodedPathSegments(appendedPath)
                 body?.forEach {
                     parameters.append(it.key, it.value)

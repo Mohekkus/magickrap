@@ -22,31 +22,27 @@ import http.certificate.model.response.CertificateResponse
 import http.certificate.model.response.ServerCertificateResponse
 
 
-@Composable
 fun getCertificateCall(
     servID: String,
     onFailure: (String) -> Unit,
     onSuccess: (CertificateResponse) -> Unit
 ) {
-    val token = LocalClipboardManager.current.getText().toString()
     val payload = CertificatePayload(
         filterserverId = servID
     )
 
-    ApiHandler.certificate.getCertificate(token, payload,
+    ApiHandler.certificate.getCertificate(payload,
         { onFailure(it) },
         { onSuccess(it) }
     )
 }
 
-@Composable
 fun generateCertificateCall(
     servID: String,
     onFailure: (String) -> Unit,
     onSuccess: (GeneratedCertificateResponse) -> Unit
 ) {
-    val token = LocalClipboardManager.current.getText().toString()
-    ApiHandler.certificate.generateCertificate(token, "wireguard", servID,
+    ApiHandler.certificate.generateCertificate("wireguard", servID,
         { onFailure(it) }, { onSuccess(it) }
     )
 }

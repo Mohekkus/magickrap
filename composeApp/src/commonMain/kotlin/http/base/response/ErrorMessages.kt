@@ -1,4 +1,4 @@
-package http.base
+package http.base.response
 
 enum class ErrorMessages {
     SUCCESS_NO_DATA {

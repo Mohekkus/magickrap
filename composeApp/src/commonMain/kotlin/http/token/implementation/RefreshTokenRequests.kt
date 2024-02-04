@@ -10,9 +10,8 @@ class RefreshTokenRequests: RefreshTokenInterface {
         private val path = listOf("auth", "refresh-token")
     }
 
-    override suspend fun refreshToken(token: String): HttpResponse {
+    override suspend fun refreshToken(): HttpResponse {
         return GenericHandler.post(
-            token,
             path
         )
     }

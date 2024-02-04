@@ -2,12 +2,11 @@ package http.login
 
 import com.google.gson.Gson
 import http.base.ClientModule
-import http.base.ErrorMessages
+import http.base.response.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
 import http.login.model.request.OAuthPayload
-import http.login.model.request.QRLoginPayload
 import http.login.model.response.*
 
 class LoginHandler {

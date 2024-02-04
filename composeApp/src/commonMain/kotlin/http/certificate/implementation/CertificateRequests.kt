@@ -16,9 +16,8 @@ class CertificateRequests : CertificateInterface {
         private val certPath = listOf("certificate")
     }
 
-    override suspend fun getAvailableServer(token: String, requestBody: AvailableServerPayload?): HttpResponse {
+    override suspend fun getAvailableServer(requestBody: AvailableServerPayload?): HttpResponse {
         return GenericHandler.get(
-            token,
             certPath.extend(
                 listOf("availserver")
             ),
@@ -26,33 +25,19 @@ class CertificateRequests : CertificateInterface {
         )
     }
 
-    override suspend fun getAvailableServer(requestBody: AvailableServerPayload?): HttpResponse {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getCertificate(token: String, requestBody: CertificatePayload?): HttpResponse {
+    override suspend fun getCertificate(requestBody: CertificatePayload?): HttpResponse {
         return GenericHandler.get(
-            token,
             certPath,
             requestBody?.toMutableMap()
         )
     }
-
-    override suspend fun getCertificate(requestBody: CertificatePayload?): HttpResponse {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun generateCertificate(token: String, requestBody: GeneratePayload?): HttpResponse {
+    override suspend fun generateCertificate(requestBody: GeneratePayload?): HttpResponse {
         return GenericHandler.get(
-            token,
             certPath.extend(
                 listOf("generate")
             ),
             requestBody?.toMutableMap()
         )
-    }
-    override suspend fun generateCertificate(requestBody: GeneratePayload?): HttpResponse {
-        TODO("Not yet implemented")
     }
 
 }

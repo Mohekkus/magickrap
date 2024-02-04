@@ -2,7 +2,7 @@ package http.token
 
 import com.google.gson.Gson
 import http.base.ClientModule
-import http.base.ErrorMessages
+import http.base.response.ErrorMessages
 import http.base.GenericHandler
 import http.base.response.GenericModel
 import http.base.wrapper.ResponseStatus
@@ -16,13 +16,12 @@ class RefreshTokenHandler {
     }
 
     fun refreshToken(
-        token: String,
         onFailure: (String) -> Unit,
         onSuccess: (RefreshTokenResponse) -> Unit
     ) {
         GenericHandler.runner(
             {
-                refresh.refreshToken(token)
+                refresh.refreshToken()
             }
         ) {
             when (it.status) {
