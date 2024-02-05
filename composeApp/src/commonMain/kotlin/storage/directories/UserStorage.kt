@@ -9,7 +9,8 @@ class UserStorage {
         val instance = UserStorage()
     }
     enum class CLASSIFICATION {
-        TOKEN;
+        TOKEN,
+        `DEVICE-ID`;
 
         private fun key(): String = name.lowercase()
         fun save(value: String) = value.save(key())
@@ -18,4 +19,12 @@ class UserStorage {
 
     fun token(value: String) = CLASSIFICATION.TOKEN.save(value)
     fun token(): String? = CLASSIFICATION.TOKEN.load()
+
+    fun device(value: String) = CLASSIFICATION.`DEVICE-ID`.save(value)
+    fun device() = CLASSIFICATION.`DEVICE-ID`.load()
+
+    fun logged(token: String, deviceId: String) {
+        token(token)
+        device(deviceId)
+    }
 }

@@ -7,7 +7,6 @@ class CertificateStorage {
 
     companion object {
         val instance = CertificateStorage()
-        private val protocolStorage = ProtocolStorage()
     }
 
     enum class DOCUMENT {
@@ -18,22 +17,10 @@ class CertificateStorage {
         fun load() = getString(key())
     }
 
-    fun certificate(protocol: String, document: String) {
-        DOCUMENT.CERTIFICATE.certificate(protocol, document)
-    }
-
-    fun DOCUMENT.certificate(protocol: String, document: String) {
-        protocolStorage.protocol(protocol)
-        save(document)
+    fun certificate(document: String) {
+        DOCUMENT.CERTIFICATE.save(document)
     }
 
     fun certificate() =
         DOCUMENT.CERTIFICATE.load()
-
-    fun document(block: (ProtocolStorage.PROVIDER, String?) -> Unit) {
-        block(
-            protocolStorage.provider(),
-            certificate()
-        )
-    }
 }

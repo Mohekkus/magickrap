@@ -15,6 +15,7 @@ import http.ApiHandler
 import http.base.ClientModule
 import http.base.response.ErrorMessages
 import storage.QuickStorage.save
+import storage.directories.UserStorage
 
 @Composable
 fun normalLoginComposable() {
@@ -76,8 +77,9 @@ fun normalLoginComposable() {
                         if (it.data?.accessToken?.isEmpty() == true)
                             warning = ErrorMessages.SUCCESS_NO_DATA.value()
                         else {
-                            ClientModule.instance.bearerToken = it.data?.accessToken.toString().apply {
-                                save("token")
+                            it.data?.accessToken?.apply {
+                                ClientModule.instance.bearerToken = toString()
+                                UserStorage.instance.token(toString())
                             }
                             result = "Login Succeeded"
                         }
@@ -107,8 +109,7 @@ fun normalLoginComposable() {
 
 fun inputHandler(username: String, password: String): String? {
     if (username.isBlank() || password.isBlank())
-        return "Username and Password cannot be nulled"
-
+        return "Username and Password cannot be nullified"
 
     if (!Global.emailRegex.matcher(username).matches())
         return "Doesn't seems like a correct email format"
