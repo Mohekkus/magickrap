@@ -6,11 +6,16 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import compose.ui.certificate.CertificateComposable
 import compose.ui.login.LoginComposable
+import storage.Storage
 
+
+val appStorage: Storage = Storage.instance
 
 val login = LoginComposable()
 val certificate = CertificateComposable()
@@ -32,13 +37,13 @@ fun main() = application {
                             MainRoute.CERTIFICATE
                         }
 
-                        MainRoute.CERTIFICATE -> {
+                        else -> {
                             MainRoute.LOGIN
                         }
                     }
                 }
             ) {
-                Text("Certificate")
+                Text(route.name.capitalize(Locale.current))
             }
 
             Box(modifier = Modifier.weight(1f)) {

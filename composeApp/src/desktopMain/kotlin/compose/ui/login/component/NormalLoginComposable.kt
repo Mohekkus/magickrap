@@ -96,10 +96,6 @@ fun normalLoginComposable() {
         Text(warning)
 
         if (result.isNotEmpty()) {
-            LocalClipboardManager.current.setText(
-                AnnotatedString(result)
-            )
-
             minimalDialog(result) {
                 result = ""
             }

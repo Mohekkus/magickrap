@@ -3,6 +3,7 @@ package storage
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import http.certificate.model.response.ServerCertificateResponse
+import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
 import storage.directories.CertificateStorage
 import storage.directories.ProtocolStorage
 import storage.directories.ServerStorage
@@ -40,7 +41,7 @@ class Storage {
         )
 
     // SERVERS
-    fun servers(value: List<ServerCertificateResponse.ServerCertificateData.ServerCertificateItem?>) {
+    fun servers(value: List<ServerCertificateItem?>) {
         server.servers(
             Gson().toJson(value)
         )
@@ -52,8 +53,7 @@ class Storage {
 
         val type = object : TypeToken<
                 List<
-                        ServerCertificateResponse
-                            .ServerCertificateData.ServerCertificateItem
+                        ServerCertificateItem
                         >
                 >() {}
         Gson().fromJson(
@@ -61,4 +61,12 @@ class Storage {
             type
         )
     }
+
+    fun favorite(value: ServerCertificateItem) {
+        server.favorite(value)
+    }
+    fun favorite() = server.favorite()
+    fun unfavorited(value: ServerCertificateItem) = server.unfavorite(value)
+
+    fun purge() = server.purge()
 }

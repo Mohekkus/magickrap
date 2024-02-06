@@ -1,6 +1,9 @@
 package storage.directories
 
-import http.certificate.model.response.ServerCertificateResponse
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import etc.Global.toClass
+import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
 import storage.QuickStorage
 import storage.QuickStorage.save
 
@@ -11,7 +14,8 @@ class ServerStorage {
     }
 
     enum class CLASSIFICATION {
-        LIST;
+        LIST,
+        FAVORITE;
 
         private fun key(): String = name.lowercase()
         fun save(value: String) = value.save(key())
@@ -23,5 +27,41 @@ class ServerStorage {
     }
     fun servers() =
         CLASSIFICATION.LIST.load()
+    fun favorite(): MutableList<ServerCertificateItem>? {
+        val favoriteToken = object : TypeToken<
+                MutableList<ServerCertificateItem>>() {}
 
+        println(CLASSIFICATION.FAVORITE.load())
+
+        return CLASSIFICATION.FAVORITE.load().toClass(favoriteToken)
+    }
+    fun favorite(value: ServerCertificateItem) {
+        var data = mutableListOf(value)
+        if (favorite()?.isEmpty() == false) {
+            data = favorite()!!.apply {
+                add(value)
+            }
+        }
+
+        println(data)
+
+        CLASSIFICATION.FAVORITE.save(
+            Gson().toJson(data)
+        )
+    }
+    fun unfavorite(value: ServerCertificateItem) {
+        favorite()?.apply {
+            val data = this
+            if (isEmpty()) return
+
+            find { value.id == it.id }.let {
+                data.remove(it)
+            }
+
+            CLASSIFICATION.FAVORITE.save(
+                Gson().toJson(data)
+            )
+        }
+    }
+    fun purge() = CLASSIFICATION.FAVORITE.save("")
 }

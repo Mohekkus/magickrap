@@ -15,6 +15,7 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
+import storage.Storage
 import java.text.DateFormat
 
 class ClientModule {
@@ -23,7 +24,7 @@ class ClientModule {
         val instance = ClientModule()
     }
 
-    lateinit var bearerToken: String
+    var bearerToken: String? = Storage.instance.token()
 
     val client = HttpClient(Java) {
         install(ContentNegotiation) {
@@ -41,8 +42,7 @@ class ClientModule {
             accept(ContentType.Application.Any)
             header(HttpHeaders.ContentType, ContentType.Application.Json)
 
-            if (::bearerToken.isInitialized)
-                header(HttpHeaders.Authorization, "Bearer $bearerToken")
+            header(HttpHeaders.Authorization, "Bearer $bearerToken")
         }
         install(HttpTimeout)
         install(Logging) {

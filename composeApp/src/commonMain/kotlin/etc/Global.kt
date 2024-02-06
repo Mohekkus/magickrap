@@ -1,5 +1,8 @@
 package etc
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import storage.Storage
 import java.util.regex.Pattern
 import java.util.regex.Pattern.compile
 import kotlin.reflect.full.memberProperties
@@ -36,7 +39,15 @@ object Global {
         return map
     }
 
-    fun getResourcesString(alias: String) {
+    fun <T> String?.toClass(typeToken: TypeToken<T>): T? =
+        try {
+            Gson().fromJson(this, typeToken)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
 
-    }
+//    fun <T> T.intoString(): String {
+//        return Gson().toJson(this)
+//    }
 }

@@ -13,10 +13,10 @@ import io.kamel.image.asyncPainterResource
 
 
 @Composable
-fun cartItem(url: String? = null, name: String?) {
+fun cartItem(url: String? = null, name: String?, weight: Float? = 1f) {
     Box(
         modifier = Modifier.padding(
-            start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp
+            start = 16.dp, top = 8.dp, bottom = 8.dp, end = 0.dp
         )
     ) {
         Card (
