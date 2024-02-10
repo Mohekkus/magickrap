@@ -11,13 +11,13 @@ class AuxonodeDesktop {
         LOGIN{
             @Composable
             override fun get(): @Composable () -> Unit = {
-                login.main()
+                login.main {}
             }
         },
         CERTIFICATE {
             @Composable
             override fun get(): @Composable () -> Unit = {
-                certificate.main()
+                certificate.main {}
             }
         };
 

@@ -1,5 +1,7 @@
 package storage.directories
 
+import CertificateDocument
+import com.google.gson.Gson
 import storage.QuickStorage.getString
 import storage.QuickStorage.save
 
@@ -7,6 +9,7 @@ class CertificateStorage {
 
     companion object {
         val instance = CertificateStorage()
+        val certificate = instance.certificate()
     }
 
     enum class DOCUMENT {
@@ -21,6 +24,8 @@ class CertificateStorage {
         DOCUMENT.CERTIFICATE.save(document)
     }
 
-    fun certificate() =
-        DOCUMENT.CERTIFICATE.load()
+    fun certificate(): CertificateDocument? {
+        return Gson().fromJson(DOCUMENT.CERTIFICATE.load(), CertificateDocument::class.java)
+    }
+//        DOCUMENT.CERTIFICATE.load()
 }

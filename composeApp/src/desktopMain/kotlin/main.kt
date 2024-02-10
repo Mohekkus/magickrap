@@ -26,6 +26,9 @@ fun main() = application {
             MainRoute.LOGIN
         )
     }
+    var update by remember {
+        mutableStateOf(false)
+    }
 
     Window(onCloseRequest = ::exitApplication, title = "desktop") {
         Column {
@@ -33,13 +36,13 @@ fun main() = application {
                 modifier = Modifier.wrapContentWidth(),
                 onClick = {
                     route = when (route) {
-                        MainRoute.LOGIN -> {
+                        MainRoute.LOGIN ->
                             MainRoute.CERTIFICATE
-                        }
 
-                        else -> {
+
+                        else ->
                             MainRoute.LOGIN
-                        }
+
                     }
                 }
             ) {
@@ -47,7 +50,9 @@ fun main() = application {
             }
 
             Box(modifier = Modifier.weight(1f)) {
-                route.get().invoke()
+                route.get {
+                    update = true
+                }.invoke()
             }
         }
     }
@@ -56,5 +61,7 @@ fun main() = application {
 @Preview
 @Composable
 fun AppDesktopPreview() {
-    MainRoute.LOGIN.get()
+    MainRoute.LOGIN.get {
+
+    }
 }

@@ -1,5 +1,6 @@
 package storage
 
+import CertificateDocument
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import http.certificate.model.response.ServerCertificateResponse
@@ -33,8 +34,13 @@ class Storage {
     fun parameter() = protocol.parameter()
 
     // DOCUMENT
-    fun document(document: String) = certificate.certificate(document)
-    fun document(block: (ProtocolStorage.PROVIDER, String?) -> Unit) =
+    fun document() = certificate.certificate()
+    fun document(document: CertificateDocument?) {
+        certificate.certificate(
+            Gson().toJson(document)
+        )
+    }
+    fun document(block: (ProtocolStorage.PROVIDER, CertificateDocument?) -> Unit) =
         block(
             protocol.provider(),
             certificate.certificate()
@@ -46,17 +52,17 @@ class Storage {
             Gson().toJson(value)
         )
     }
-    fun servers() {
+    fun servers(): List<ServerCertificateItem>? {
         val serverList = server.servers()
         if (serverList?.isEmpty() == true)
-            return
+            return null
 
         val type = object : TypeToken<
                 List<
                         ServerCertificateItem
                         >
                 >() {}
-        Gson().fromJson(
+        return Gson().fromJson(
             serverList,
             type
         )
@@ -68,5 +74,8 @@ class Storage {
     fun favorite() = server.favorite()
     fun unfavorited(value: ServerCertificateItem) = server.unfavorite(value)
 
-    fun purge() = server.purge()
+//    fun purge() = server.purge()
+
+    fun save(value: ServerCertificateItem) = server.save(value)
+    fun saved() = server.saved()
 }

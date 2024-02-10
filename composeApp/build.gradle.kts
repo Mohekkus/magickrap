@@ -15,6 +15,7 @@ with(tasks) {
 
 plugins {
     id("com.louiscad.complete-kotlin") version "1.1.0"
+    kotlin("plugin.serialization") version "1.9.21"
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.jetbrainsCompose)
 }

@@ -6,17 +6,21 @@ import compose.ui.login.component.normalLoginComposable
 enum class MainRoute {
     LOGIN{
         @Composable
-        override fun get(): @Composable () -> Unit = {
-            login.main()
+        override fun get(navigate: () -> Unit): @Composable () -> Unit = {
+            login.main {
+                navigate.invoke()
+            }
         }
     },
     CERTIFICATE {
         @Composable
-        override fun get(): @Composable () -> Unit = {
-            certificate.main()
+        override fun get(navigate: () -> Unit): @Composable () -> Unit = {
+            certificate.main {
+                navigate.invoke()
+            }
         }
     };
 
     @Composable
-    abstract fun get(): @Composable () -> Unit
+    abstract fun get(navigate: () -> Unit): @Composable () -> Unit
 }

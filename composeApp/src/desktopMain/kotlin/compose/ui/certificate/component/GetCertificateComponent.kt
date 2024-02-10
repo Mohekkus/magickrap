@@ -1,25 +1,33 @@
 package compose.ui.certificate.component
 
+import CertificateDocument
 import GeneratedCertificateResponse
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.google.gson.Gson
+import appStorage
+import compose.ui.reusable.componentCard
+import compose.ui.reusable.serverCard
 import etc.Global.toMutableMap
 import http.ApiHandler
 import http.certificate.implementation.CertificateRequests
 import http.certificate.model.payload.CertificatePayload
 import http.certificate.model.response.CertificateResponse
 import http.certificate.model.response.ServerCertificateResponse
+import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
 
 
 fun getCertificateCall(
@@ -49,7 +57,12 @@ fun generateCertificateCall(
 
 @Preview
 @Composable
-fun getCertificateComponent(savedServer: ServerCertificateResponse.ServerCertificateData.ServerCertificateItem) {
+fun getCertificateComponent(
+    savedServer: ServerCertificateItem,
+    savingCertificate: (CertificateDocument?) -> Unit
+) {
+    val protocol = appStorage.protocol()
+
     var certificate by remember {
         mutableStateOf<CertificateResponse?>(null)
     }
@@ -75,11 +88,17 @@ fun getCertificateComponent(savedServer: ServerCertificateResponse.ServerCertifi
                 .wrapContentSize()
                 .verticalScroll(rememberScrollState())
             ) {
-                certificate?.data?.items?.forEach {
-                    Card(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            it?.document?.toMutableMap().toString()
-                        )
+                certificate?.data?.items?.filter { it?.protocols == protocol.name }?.forEach {
+                    componentCard {
+                        TextButton(onClick = {
+                            savingCertificate(it?.document)
+                        }) {
+                            Column {
+                                Text(it?.server?.name.toString())
+                                Text("${it?.protocols.toString()} protocol\n\n")
+                                Text(it?.document?.client?.toMutableMap().toString())
+                            }
+                        }
                     }
                 }
             }
@@ -92,7 +111,7 @@ fun getCertificateComponent(savedServer: ServerCertificateResponse.ServerCertifi
                 status = "Generate"
             },
             onSuccess = {
-                status = ""
+                status = "List of"
                 certificate = it
             }
         )
@@ -104,8 +123,7 @@ fun getCertificateComponent(savedServer: ServerCertificateResponse.ServerCertifi
             onFailure = {
             },
             onSuccess = {
-                status = ""
-                // TODO
+                status = "List of"
             }
         )
 }

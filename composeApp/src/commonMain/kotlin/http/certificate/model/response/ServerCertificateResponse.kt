@@ -18,7 +18,7 @@ data class ServerCertificateResponse(
         @SerializedName("from")
         var from: Int?, // 16
         @SerializedName("items")
-        var items: List<ServerCertificateItem?>?,
+        var items: List<ServerCertificateItem>?,
         @SerializedName("las_page")
         var lasPage: Int?, // 1
         @SerializedName("last_page_url")

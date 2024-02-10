@@ -16,7 +16,7 @@ import compose.ui.login.component.qrLoginComposable
 class LoginComposable {
 
     @Composable
-    fun main() {
+    fun main(callback: () -> Unit) {
         var current by remember {
             mutableStateOf(
                 LoginRoutes.NORMAL
