@@ -14,11 +14,9 @@ import io.kamel.image.asyncPainterResource
 
 
 @Composable
-fun serverCard(url: String? = null, text: String?) {
+fun serverCard(url: String? = null, text: String?, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Box(
-        modifier = Modifier.padding(
-            start = 16.dp, top = 8.dp, bottom = 8.dp, end = 0.dp
-        )
+        modifier = modifier
     ) {
         Card (
             shape = RoundedCornerShape(16.dp)
@@ -39,27 +37,26 @@ fun serverCard(url: String? = null, text: String?) {
                     style = MaterialTheme.typography.subtitle1
                 )
 
+                content()
             }
         }
     }
 }
 
 @Composable
-fun componentCard(composable: @Composable () -> Unit) {
+fun componentCard(modifier: Modifier? = null, composable: @Composable () -> Unit) {
     Box(
-        modifier = Modifier.padding(
-            start = 8.dp, top = 8.dp, bottom = 8.dp, end = 8.dp
-        )
+        modifier = modifier ?: Modifier,
     ) {
         Card (
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
         ) {
             Row(
                 modifier = Modifier.padding(16.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
             ) {
                 composable()
-
             }
         }
     }

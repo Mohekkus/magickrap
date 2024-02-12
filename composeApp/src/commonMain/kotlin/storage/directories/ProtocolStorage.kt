@@ -36,6 +36,12 @@ class ProtocolStorage {
     fun parameter() = OPTION.PROTOCOL.load() ?: "automatic"
 
     fun protocol(): PROTOCOL {
+        println("PROTOCOL STORAGE ${parameter()}")
+
+        println("PROTOCOL STORAGE IS WIREGUARD ${parameter() == PROTOCOL.WIREGUARD.key()}")
+        println("PROTOCOL STORAGE IS UDP OPENVPN ${parameter() == PROTOCOL.OPENVPN_TCP.key()}")
+        println("PROTOCOL STORAGE IS TCP OPENVPN ${parameter() == PROTOCOL.OPENVPN_UDP.key()}")
+
         return when (parameter()) {
             PROTOCOL.OPENVPN_UDP.key() -> PROTOCOL.OPENVPN_UDP
             PROTOCOL.OPENVPN_TCP.key() -> PROTOCOL.OPENVPN_TCP

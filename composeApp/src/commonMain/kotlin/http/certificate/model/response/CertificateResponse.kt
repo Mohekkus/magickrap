@@ -7,11 +7,11 @@ import http.base.response.GenericMetaPayload
 
 data class CertificateResponse(
     @SerializedName("data")
-    var `data`: Data?,
+    var `data`: CertificateData?,
     @SerializedName("meta")
     var meta: GenericMetaPayload?
 ) {
-    data class Data(
+    data class CertificateData(
         @SerializedName("current_page")
         var currentPage: Int?, // 2
         @SerializedName("first_page_url")
@@ -19,7 +19,7 @@ data class CertificateResponse(
         @SerializedName("from")
         var from: Int?, // 16
         @SerializedName("items")
-        var items: List<Item?>?,
+        var items: List<CertificateItem?>?,
         @SerializedName("las_page")
         var lasPage: Int?, // 1
         @SerializedName("last_page_url")
@@ -37,7 +37,7 @@ data class CertificateResponse(
         @SerializedName("total")
         var total: Int? // 500
     ) {
-        data class Item(
+        data class CertificateItem(
             @SerializedName("document")
             var document: CertificateDocument?,
             @SerializedName("expiration")

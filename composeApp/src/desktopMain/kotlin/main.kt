@@ -12,6 +12,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import compose.ui.certificate.CertificateComposable
 import compose.ui.login.LoginComposable
+import http.base.ClientModule
 import storage.Storage
 
 
@@ -30,24 +31,25 @@ fun main() = application {
         mutableStateOf(false)
     }
 
+    if (ClientModule.instance.bearerToken?.isNotEmpty() == true)
+        route = MainRoute.CERTIFICATE
+
+
     Window(onCloseRequest = ::exitApplication, title = "desktop") {
         Column {
-            TextButton(
-                modifier = Modifier.wrapContentWidth(),
-                onClick = {
-                    route = when (route) {
-                        MainRoute.LOGIN ->
-                            MainRoute.CERTIFICATE
-
-
-                        else ->
-                            MainRoute.LOGIN
-
-                    }
-                }
-            ) {
-                Text(route.name.capitalize(Locale.current))
-            }
+//            TextButton(
+//                modifier = Modifier.wrapContentWidth(),
+//                onClick = {
+//                    route = when (route) {
+//                        MainRoute.LOGIN ->
+//                            MainRoute.CERTIFICATE
+//
+//                        else ->
+//                            MainRoute.LOGIN
+//
+//                    }
+//                }
+//            ) { }
 
             Box(modifier = Modifier.weight(1f)) {
                 route.get {

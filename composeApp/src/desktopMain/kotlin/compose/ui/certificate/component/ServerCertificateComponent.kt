@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.*
@@ -39,92 +40,117 @@ fun getServerCall(serverList: (ServerCertificateResponse) -> Unit) {
 fun serverCertificateComponent(
     callback: (ServerCertificateItem) -> Unit
 ) {
-    var server by remember {
+    var serverList by remember {
         mutableStateOf(appStorage.servers())
     }
+    var savedServer by remember {
+        mutableStateOf(appStorage.saved())
+    }
 
-    if (server != null)
+    if (serverList != null)
         Column(
             modifier = Modifier
                 .wrapContentWidth()
                 .fillMaxHeight()
-                .padding(16.dp)
         ) {
             Text(
                 "Server",
                 style = MaterialTheme.typography.h5,
-                fontWeight = FontWeight(800)
+                fontWeight = FontWeight(800),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            Column(modifier = Modifier
-                .wrapContentSize()
-                .verticalScroll(rememberScrollState())
+            Column(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                server?.apply {
+                serverList?.apply {
                     appStorage.servers(this)
 
                     if (this.isNotEmpty())
                         forEach { data ->
-                            TextButton(
-                                onClick = {
-                                    callback(data)
-                                }) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .padding(
+                                        bottom = 16.dp,
+                                        end = 16.dp
+                                    )
+                            ) {
+                                var isFavorited by remember {
+                                    mutableStateOf(false)
+                                }
+
+                                appStorage.favorite().apply {
+                                    if (this != null) {
+                                        firstOrNull { it.id == data.id }.let {
+                                            if (it != null) isFavorited = true
+                                        }
+                                    }
+
+                                    IconToggleButton(
+                                        modifier = Modifier.weight(.1f),
+                                        checked = isFavorited,
+                                        onCheckedChange = {
+                                            isFavorited = it
+
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                appStorage.apply {
+                                                    if (!it)
+                                                        unfavorited(data)
+                                                    else
+                                                        favorite(data)
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            if (!isFavorited) Icons.Outlined.FavoriteBorder else Icons.Filled.Favorite,
+                                            contentDescription = "Favorite",
+                                        )
+                                    }
+                                }
+
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
+                                    modifier = Modifier
+                                        .padding(start = 16.dp)
+                                        .weight(1f)
                                 ) {
-                                    Box(modifier = Modifier.weight(1f)) {
+                                    TextButton(
+                                        contentPadding = PaddingValues(0.dp),
+                                        onClick = {
+                                            callback(data)
+                                            appStorage.save(data)
+                                            savedServer = data
+                                        }
+                                    ) {
                                         serverCard(
                                             data.iconUrl,
                                             data.name
-                                        )
-                                    }
-
-                                    var isFavorited by remember {
-                                        mutableStateOf(false)
-                                    }
-
-                                    appStorage.favorite().apply {
-                                        if (this != null) {
-                                            firstOrNull { it.id == data.id }.let {
-                                                if (it != null) isFavorited = true
-                                            }
-                                        }
-
-                                        IconToggleButton(
-                                            checked = isFavorited,
-                                            onCheckedChange = {
-                                                isFavorited = it
-
-                                                CoroutineScope(Dispatchers.IO).launch {
-                                                    appStorage.apply {
-                                                        if (!it)
-                                                            unfavorited(data)
-                                                        else
-                                                            favorite(data)
-                                                    }
-                                                }
-                                            }
                                         ) {
-                                            Icon(
-                                                if (!isFavorited) Icons.Outlined.FavoriteBorder else Icons.Filled.Favorite,
-                                                contentDescription = "Favorite",
-                                            )
+                                            if (savedServer?.id == data.id)
+                                                Row(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    horizontalArrangement = Arrangement.End
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.CheckCircle,
+                                                        contentDescription = "Selected Server"
+                                                    )
+                                                }
                                         }
                                     }
-
-
                                 }
                             }
-
                         }
                 }
             }
         }
 
-    if (server == null)
+    if (serverList == null)
         getServerCall {
-            server = it.data?.items
+            serverList = it.data?.items
         }
 
 }
