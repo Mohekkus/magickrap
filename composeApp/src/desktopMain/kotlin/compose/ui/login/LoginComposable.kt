@@ -22,6 +22,9 @@ class LoginComposable {
                 LoginRoutes.NORMAL
             )
         }
+        var logged by remember {
+            mutableStateOf(false)
+        }
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -34,7 +37,9 @@ class LoginComposable {
                     .weight(1f)
                     .padding(8.dp)
             ) {
-                current.get().invoke()
+                current.get {
+                    callback.invoke()
+                }.invoke()
 
                 Row(
                     modifier = Modifier
@@ -91,33 +96,37 @@ class LoginComposable {
         }
     }
 
-    enum class LoginRoutes() {
+    enum class LoginRoutes {
         NORMAL {
             @Composable
-            override fun get(): @Composable () -> Unit = {
-                normalLoginComposable()
+            override fun get(onLogged: () -> Unit): @Composable () -> Unit = {
+                normalLoginComposable{
+                    onLogged()
+                }
             }
         },
         CODE {
             @Composable
-            override fun get(): @Composable () -> Unit = {
-                codeLoginComposable()
+            override fun get(onLogged: () -> Unit): @Composable () -> Unit = {
+                codeLoginComposable { onLogged() }
             }
         },
         QR {
             @Composable
-            override fun get(): @Composable () -> Unit = {
+            override fun get(onLogged: () -> Unit): @Composable () -> Unit = {
                 qrLoginComposable()
             }
         },
         SSO {
             @Composable
-            override fun get(): @Composable () -> Unit = {
-                normalLoginComposable()
+            override fun get(onLogged: () -> Unit): @Composable () -> Unit = {
+                normalLoginComposable {
+                    onLogged()
+                }
             }
         };
 
         @Composable
-        abstract fun get(): @Composable () -> Unit
+        abstract fun get(onLogged: () -> Unit): @Composable () -> Unit
     }
 }

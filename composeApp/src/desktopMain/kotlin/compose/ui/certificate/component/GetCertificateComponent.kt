@@ -17,8 +17,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import appStorage
+import appVpn
 import compose.ui.reusable.componentCard
+import compose.ui.reusable.minimalDialog
 import http.ApiHandler
+import http.base.ClientModule
 import http.certificate.model.payload.CertificatePayload
 import http.certificate.model.response.CertificateResponse
 import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
@@ -78,6 +81,9 @@ fun getCertificateComponent(
     var status by remember {
         mutableStateOf("Get")
     }
+    var generateFailed by remember {
+        mutableStateOf<String?>(null)
+    }
 
 
     if (savedServer != lastServer) {
@@ -92,10 +98,9 @@ fun getCertificateComponent(
     ) {
         Text(
             "Certificate",
-            style = MaterialTheme.typography.h6,
-            fontWeight = FontWeight(600),
-            color = Color.Black,
-            modifier = Modifier.fillMaxWidth()
+            style = MaterialTheme.typography.h5,
+            fontWeight = FontWeight(800),
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
         TextButton(
@@ -188,7 +193,7 @@ fun getCertificateComponent(
                 }
             }
 
-            if (status == "")
+            if (status == "" || status == "Failed")
                 IconButton(
                     modifier = Modifier
                         .wrapContentSize()
@@ -216,7 +221,9 @@ fun getCertificateComponent(
         }
 
         if (status == "" && certificateExpand)
-            componentCard {
+            componentCard(
+                modifier = Modifier.padding(bottom = 18.dp)
+            ) {
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
@@ -234,14 +241,23 @@ fun getCertificateComponent(
                     )
                 }
             }
+
+        if (status == "" && certificate != null)
+            Button(
+                modifier = Modifier.fillMaxSize(),
+                onClick = {
+                    appVpn.execute(config = certificate) {
+
+                    }
+                },
+            ) {
+                Text("Execute")
+            }
     }
 
     if (status == "Get" || status == "Retrying") {
         appStorage.protocol(protocol.key())
         certificateExpand = false
-
-        println("===============S")
-        println(savedServer.id)
         getCertificateCall(
             lastServer?.id ?: "",
             onFailure = {
@@ -264,7 +280,8 @@ fun getCertificateComponent(
         generateCertificateCall(
             savedServer.id ?: "",
             onFailure = {
-                status = "Retrying"
+                generateFailed = it
+                status = "Failed"
             },
             onSuccess = { response ->
                 status = "Generated"
@@ -278,6 +295,13 @@ fun getCertificateComponent(
 
             }
         )
+
+    if (status == "Failed")
+        minimalDialog(
+            generateFailed.toString()
+        ) {
+            generateFailed = null
+        }
 
 }
 

@@ -25,6 +25,7 @@ kotlin {
     
     sourceSets {
         val desktopMain by getting
+        val macos by creating
         
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -79,7 +80,7 @@ compose.desktop {
         }
         buildTypes.release.proguard {
             isEnabled.set(true)
-            obfuscate.set(true)
+            obfuscate.set(false)
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import appStorage
 import compose.ui.reusable.minimalDialog
 import etc.Global
 import http.ApiHandler
@@ -18,7 +19,7 @@ import storage.QuickStorage.save
 import storage.directories.UserStorage
 
 @Composable
-fun normalLoginComposable() {
+fun normalLoginComposable(onLogged: () -> Unit) {
     var warning by remember {
         mutableStateOf("")
     }
@@ -79,7 +80,7 @@ fun normalLoginComposable() {
                         else {
                             it.data?.accessToken?.apply {
                                 ClientModule.instance.bearerToken = toString()
-                                UserStorage.instance.token(toString())
+                                appStorage.logged(toString())
                             }
                             result = "Login Succeeded"
                         }
@@ -97,6 +98,9 @@ fun normalLoginComposable() {
 
         if (result.isNotEmpty()) {
             minimalDialog(result) {
+                if (result == "Login Succeeded")
+                    onLogged.invoke()
+
                 result = ""
             }
         }

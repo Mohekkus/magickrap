@@ -11,7 +11,7 @@ import http.logout.implementation.LogoutRequest
 class LogoutHandler {
 
     companion object {
-        val instance = LogoutRequest()
+        val instance = LogoutHandler()
         private val logout = ClientModule.instance.logout
     }
 
