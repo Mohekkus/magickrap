@@ -72,7 +72,7 @@ fun getCertificateComponent(
     }
 
     var certificate by remember {
-        mutableStateOf<CertificateDocument?>(null)
+        mutableStateOf(appStorage.document())
     }
     var certificateExpand by remember {
         mutableStateOf(false)
@@ -220,88 +220,92 @@ fun getCertificateComponent(
                 )
         }
 
-        if (status == "" && certificateExpand)
-            componentCard(
-                modifier = Modifier.padding(bottom = 18.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        "Server: ${savedServer.hostName}",
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        "Protocol: ${protocol.protocolText()}",
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        "Certificate id: ${certificate?.client?.id.toString()}",
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+        when (status) {
+            "" ->
+                when {
+                    certificateExpand ->
+                        componentCard(
+                            modifier = Modifier.padding(bottom = 18.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Text(
+                                    "Server: ${savedServer.hostName}",
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                Text(
+                                    "Protocol: ${protocol.protocolText()}",
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                Text(
+                                    "Certificate id: ${certificate?.client?.id.toString()}",
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                            }
+                        }
+                    certificate != null ->
+                        Button(
+                            modifier = Modifier.fillMaxSize(),
+                            onClick = {
+                                appVpn.start(data = certificate ?: return@Button) {
+
+                                }
+                            },
+                        ) {
+                            Text("Execute")
+                        }
                 }
-            }
-
-        if (status == "" && certificate != null)
-            Button(
-                modifier = Modifier.fillMaxSize(),
-                onClick = {
-                    appVpn.execute(config = certificate) {
-
-                    }
-                },
-            ) {
-                Text("Execute")
-            }
-    }
-
-    if (status == "Get" || status == "Retrying") {
-        appStorage.protocol(protocol.key())
-        certificateExpand = false
-        getCertificateCall(
-            lastServer?.id ?: "",
-            onFailure = {
-                status = "Generate"
-            },
-            onSuccess = { response ->
-                status = "Processing"
-                response.data?.items?.first { it?.protocols == protocol.key() }.let {
-                    if (it == null) status = "Generate"
-                    else {
-                        status = ""
-                        certificate = it.document
-                    }
-                }
-            }
-        )
-    }
-
-    if (status == "Generate")
-        generateCertificateCall(
-            savedServer.id ?: "",
-            onFailure = {
-                generateFailed = it
-                status = "Failed"
-            },
-            onSuccess = { response ->
-                status = "Generated"
-                response.data.let {
-                    if (it == null) status = "Retrying"
-                    else {
-                        status = ""
-                        certificate = it.document
-                    }
-                }
-
-            }
-        )
-
-    if (status == "Failed")
-        minimalDialog(
-            generateFailed.toString()
-        ) {
-            generateFailed = null
         }
+    }
+
+    when (status) {
+        "Get", "Retrying" -> {
+            appStorage.protocol(protocol.key())
+            certificateExpand = false
+            getCertificateCall(
+                lastServer?.id ?: "",
+                onFailure = {
+                    status = "Generate"
+                },
+                onSuccess = { response ->
+                    status = "Processing"
+                    response.data?.items?.first { it?.protocols == protocol.key() }.let {
+                        if (it == null) status = "Generate"
+                        else {
+                            status = ""
+                            certificate = it.document
+                        }
+                    }
+                }
+            )
+        }
+        "Generate" ->
+            generateCertificateCall(
+                savedServer.id ?: "",
+                onFailure = {
+                    generateFailed = it
+                    status = "Failed"
+                },
+                onSuccess = { response ->
+                    status = "Generated"
+                    response.data.let {
+                        if (it == null) status = "Retrying"
+                        else {
+                            status = ""
+                            certificate = it.document
+                        }
+                    }
+
+                }
+            )
+        "Failed" ->
+            minimalDialog(
+                generateFailed.toString()
+            ) {
+                generateFailed = null
+            }
+    }
 
 }
 

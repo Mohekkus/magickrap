@@ -8,21 +8,21 @@ import login
 enum class MainRoute {
     LOGIN{
         @Composable
-        override fun get(navigate: () -> Unit): @Composable () -> Unit = {
+        override fun get(navigate: (MainRoute) -> Unit): @Composable () -> Unit = {
             login.main {
-                navigate.invoke()
+                navigate.invoke(CERTIFICATE)
             }
         }
     },
     CERTIFICATE {
         @Composable
-        override fun get(navigate: () -> Unit): @Composable () -> Unit = {
+        override fun get(navigate: (MainRoute) -> Unit): @Composable () -> Unit = {
             certificate.main {
-                navigate.invoke()
+                navigate.invoke(LOGIN)
             }
         }
     };
 
     @Composable
-    abstract fun get(navigate: () -> Unit): @Composable () -> Unit
+    abstract fun get(navigate: (MainRoute) -> Unit): @Composable () -> Unit
 }

@@ -1,5 +1,7 @@
+import org.gradle.internal.impldep.org.joda.time.DateTime
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.time.LocalDate
 
 buildscript {
     dependencies {
@@ -74,7 +76,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.auxonode"
+            packageName = "Auxonode - ${generateDate()}"
             packageVersion = "1.0.0"
             modules("java.instrument", "java.management", "java.net.http", "java.sql", "jdk.unsupported")
         }
@@ -84,3 +86,5 @@ compose.desktop {
         }
     }
 }
+
+fun generateDate() = LocalDate.now().toString()

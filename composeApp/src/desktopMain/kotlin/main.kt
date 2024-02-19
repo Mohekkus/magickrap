@@ -38,10 +38,8 @@ fun main() = application {
                 MainRoute.LOGIN
         }
 
-
     if (ClientModule.instance.bearerToken?.isNotEmpty() == true)
         route = MainRoute.CERTIFICATE
-
 
     Window(
         onCloseRequest = ::exitApplication,

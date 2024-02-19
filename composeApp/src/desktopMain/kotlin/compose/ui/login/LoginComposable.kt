@@ -114,7 +114,7 @@ class LoginComposable {
         QR {
             @Composable
             override fun get(onLogged: () -> Unit): @Composable () -> Unit = {
-                qrLoginComposable()
+                qrLoginComposable { onLogged() }
             }
         },
         SSO {
