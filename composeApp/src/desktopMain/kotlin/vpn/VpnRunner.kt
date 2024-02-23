@@ -2,8 +2,10 @@ package vpn
 
 import CertificateDocument
 import appStorage
-import storage.directories.ProtocolStorage
-import storage.directories.ProtocolStorage.PROTOCOL
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import storage.directories.ProtocolStorage.PROTOCOL.*
 import java.io.BufferedReader
 import java.io.File
@@ -15,11 +17,11 @@ class VpnRunner {
     private lateinit var process: Process
     companion object {
         val instance = VpnRunner()
-        private const val root = "sudo src/desktopMain/resources"
+        private const val PATH = "sudo /Users/mohekkus/development/auxonode-desktop/composeApp/src/desktopMain/resources"
     }
 
     private fun pathBuilder() = StringJoiner("/")
-        .add(root).add(byOS()).add(provider())
+        .add(PATH).add(byOS()).add(provider())
 
     private fun byOS() =
         when (System.getProperty("os.name").lowercase()) {
@@ -30,8 +32,15 @@ class VpnRunner {
     private fun provider() =
         when (appStorage.protocol()) {
             OPENVPN_UDP,
-            OPENVPN_TCP -> "ovpn/ovpncli "
-            else -> "wireguard/wg-quick "
+            OPENVPN_TCP -> "ovpn/ovpncli"
+            else -> "wireguard/wg-quick/darwin.bash up"
+        }
+
+    private fun option() =
+        when (appStorage.protocol()) {
+            OPENVPN_UDP,
+            OPENVPN_TCP -> "--compress asym"
+            else -> ""
         }
 
     fun start(data: CertificateDocument, callback: (String) -> Unit) {
@@ -45,13 +54,17 @@ class VpnRunner {
     }
 
     private fun makeConfiguration(data: CertificateDocument): String {
-        val certificate = assemble(data)
+        val certificate =
+            if (appStorage.protocol() == WIREGUARD) assembleWireguard(data) else assembleOpenVPN(data)
 
         // Get the directory where the executable is located
         val appDirectory = File(".").absoluteFile.parentFile
 
         // File name with .txt extension
-        val fileName = "temp.conf"
+        val fileName = "temp.${
+            if (appStorage.protocol() == WIREGUARD) "conf"
+            else "ovpn"
+        }"
 
         // Create the file
         val file = File(appDirectory, fileName)
@@ -64,26 +77,45 @@ class VpnRunner {
 
 
     private fun execute(path: String, callback: (String) -> Unit) {
-        val command = "${pathBuilder()} $path"
+        val password = "RakhasaMohekkus"
+        val command = "sudo -S ${pathBuilder()} $path ${option()}"
+        println(command)
 
-        process = Runtime.getRuntime().exec(
-            command
-        )
 
-        val reader = BufferedReader(InputStreamReader(process.inputStream))
+        val job = CoroutineScope(Dispatchers.IO).launch {
+            process = Runtime.getRuntime().exec(command)
 
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            callback(line.toString())
+            val outputStream = process.outputStream
+            outputStream.write("$password\n".toByteArray())
+            outputStream.flush()
+
+            val reader = BufferedReader(InputStreamReader(process.inputStream))
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                println(line)
+            }
         }
 
-        val exitCode = process.waitFor()
+        // Optional: Handle the completion of the job
+        job.invokeOnCompletion {
+            it?.let {
+                println("Job failed: $it")
+            } ?: run {
+                println("Job completed successfully.")
+            }
+        }
+
+//        val exitCode = process.waitFor()
+
+//        println("Process exited with code: $exitCode")
     }
 
-    private fun assemble(certificate: CertificateDocument): String {
+    private fun assembleOpenVPN(certificate: CertificateDocument): String {
         certificate.apply {
             return StringJoiner("\n")
                 .add(config?.common?.joinToString("\n"))
+                .add("compress lz4\n" +
+                        "comp-lzo no")
                 .add("key-direction ${config?.ca?.keyDirection}")
                 .add("<ca>")
                 .add("${config?.ca?.cert}</ca>")
@@ -95,6 +127,29 @@ class VpnRunner {
                 .add("${config?.tls}</tls-auth>")
                 .toString()
                 .replace("?", "\n")
+        }
+    }
+
+    private fun assembleWireguard(certificate: CertificateDocument): String {
+        certificate.apply {
+            return StringJoiner("\n")
+                .apply {
+                    add("[Interface]")
+                    client?.apply {
+                        add("Address = $address")
+                        add("PrivateKey = $privateKey")
+                        add("Port = $port")
+                    }
+
+                    add("[Peer]")
+                    config?.apply {
+                        add("AllowedIPs = $allowedIp")
+                        add("PublicKey = $publicKey")
+                        add("PresharedKey = $presharedKey")
+                        add("Endpoint = $endpoint")
+                    }
+                }
+                .toString()
         }
     }
 }

@@ -39,7 +39,7 @@ die() {
 	exit 1
 }
 
-[[ ${BASH_VERSINFO[0]} -ge 4 ]] || die "Version mismatch: bash ${BASH_VERSINFO[0]} detected, when bash 4+ required"
+#[[ ${BASH_VERSINFO[0]} -ge 4 ]] || die "Version mismatch: bash ${BASH_VERSINFO[0]} detected, when bash 4+ required"
 
 CONFIG_SEARCH_PATHS=( /etc/wireguard /usr/local/etc/wireguard )
 
@@ -215,30 +215,30 @@ collect_endpoints() {
 	done < <(wg show "$REAL_INTERFACE" endpoints)
 }
 
-declare -A SERVICE_DNS
-declare -A SERVICE_DNS_SEARCH
-collect_new_service_dns() {
-	local service get_response
-	local -A found_services
-	{ read -r _ && while read -r service; do
-		[[ $service == "*"* ]] && service="${service:1}"
-		found_services["$service"]=1
-		[[ -n ${SERVICE_DNS["$service"]} ]] && continue
-		get_response="$(cmd networksetup -getdnsservers "$service")"
-		[[ $get_response == *" "* ]] && get_response="Empty"
-		[[ -n $get_response ]] && SERVICE_DNS["$service"]="$get_response"
-		get_response="$(cmd networksetup -getsearchdomains "$service")"
-		[[ $get_response == *" "* ]] && get_response="Empty"
-		[[ -n $get_response ]] && SERVICE_DNS_SEARCH["$service"]="$get_response"
-	done; } < <(networksetup -listallnetworkservices)
-
-	for service in "${!SERVICE_DNS[@]}"; do
-		if ! [[ -n ${found_services["$service"]} ]]; then
-			unset SERVICE_DNS["$service"]
-			unset SERVICE_DNS_SEARCH["$service"]
-		fi
-	done
-}
+#declare -A SERVICE_DNS
+#declare -A SERVICE_DNS_SEARCH
+#collect_new_service_dns() {
+#	local service get_response
+#	local -A found_services
+#	{ read -r _ && while read -r service; do
+#		[[ $service == "*"* ]] && service="${service:1}"
+#		found_services["$service"]=1
+#		[[ -n ${SERVICE_DNS["$service"]} ]] && continue
+#		get_response="$(cmd networksetup -getdnsservers "$service")"
+#		[[ $get_response == *" "* ]] && get_response="Empty"
+#		[[ -n $get_response ]] && SERVICE_DNS["$service"]="$get_response"
+#		get_response="$(cmd networksetup -getsearchdomains "$service")"
+#		[[ $get_response == *" "* ]] && get_response="Empty"
+#		[[ -n $get_response ]] && SERVICE_DNS_SEARCH["$service"]="$get_response"
+#	done; } < <(networksetup -listallnetworkservices)
+#
+#	for service in "${!SERVICE_DNS[@]}"; do
+#		if ! [[ -n ${found_services["$service"]} ]]; then
+#			unset SERVICE_DNS["$service"]
+#			unset SERVICE_DNS_SEARCH["$service"]
+#		fi
+#	done
+#}
 
 set_endpoint_direct_route() {
 	local old_endpoints endpoint old_gateway4 old_gateway6 remove_all_old=0 added=( )

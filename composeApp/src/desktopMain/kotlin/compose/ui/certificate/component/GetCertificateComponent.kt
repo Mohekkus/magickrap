@@ -275,6 +275,7 @@ fun getCertificateComponent(
                         else {
                             status = ""
                             certificate = it.document
+                            appStorage.document(it.document)
                         }
                     }
                 }
