@@ -23,6 +23,4 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
-include("composeApp:nativeMain")
-findProject(":composeApp:nativeMain")?.name = "nativeMain"
 include("vpn")
