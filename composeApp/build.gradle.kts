@@ -11,7 +11,7 @@ buildscript {
 
 with(tasks) {
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_11.majorVersion
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_20.majorVersion
     }
 }
 
@@ -65,7 +65,9 @@ kotlin {
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation("net.java.dev.jna:jna:5.10.0")
         }
+        macos.dependencies {  }
     }
 }
 

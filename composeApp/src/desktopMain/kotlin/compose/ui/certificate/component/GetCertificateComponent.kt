@@ -79,7 +79,9 @@ fun getCertificateComponent(
     }
 
     var status by remember {
-        mutableStateOf("Get")
+        mutableStateOf(
+            if (certificate == null) "Get" else ""
+        )
     }
     var generateFailed by remember {
         mutableStateOf<String?>(null)
@@ -270,7 +272,7 @@ fun getCertificateComponent(
                 },
                 onSuccess = { response ->
                     status = "Processing"
-                    response.data?.items?.first { it?.protocols == protocol.key() }.let {
+                    response.data?.items?.filter { it?.server?.id == lastServer?.id }?.first { it?.protocols == protocol.key() }.let {
                         if (it == null) status = "Generate"
                         else {
                             status = ""
@@ -301,11 +303,12 @@ fun getCertificateComponent(
                 }
             )
         "Failed" ->
-            minimalDialog(
-                generateFailed.toString()
-            ) {
-                generateFailed = null
-            }
+            if (generateFailed != null)
+                minimalDialog(
+                    generateFailed.toString()
+                ) {
+                    generateFailed = null
+                }
     }
 
 }

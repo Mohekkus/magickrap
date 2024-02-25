@@ -4,7 +4,6 @@ import CertificateDocument
 import appStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import storage.directories.ProtocolStorage.PROTOCOL.*
 import java.io.BufferedReader
@@ -15,9 +14,10 @@ import java.util.StringJoiner
 class VpnRunner {
 
     private lateinit var process: Process
+    private lateinit var path: String
     companion object {
         val instance = VpnRunner()
-        private const val PATH = "sudo /Users/mohekkus/development/auxonode-desktop/composeApp/src/desktopMain/resources"
+        private const val PATH = "/Users/mohekkus/development/auxonode-desktop/composeApp/src/desktopMain/resources"
     }
 
     private fun pathBuilder() = StringJoiner("/")
@@ -44,13 +44,14 @@ class VpnRunner {
         }
 
     fun start(data: CertificateDocument, callback: (String) -> Unit) {
+        if (::process.isInitialized)
+            if (process.isAlive) {
+                terminate()
+                return
+            }
+
         val path = makeConfiguration(data)
         execute(path, callback)
-    }
-
-    fun kill() {
-        if (::process.isInitialized)
-            process.destroy()
     }
 
     private fun makeConfiguration(data: CertificateDocument): String {
@@ -77,22 +78,28 @@ class VpnRunner {
 
 
     private fun execute(path: String, callback: (String) -> Unit) {
-        val password = "RakhasaMohekkus"
-        val command = "sudo -S ${pathBuilder()} $path ${option()}"
+        val command = "sudo ${pathBuilder()} $path ${option()}"
         println(command)
-
 
         val job = CoroutineScope(Dispatchers.IO).launch {
             process = Runtime.getRuntime().exec(command)
 
-            val outputStream = process.outputStream
-            outputStream.write("$password\n".toByteArray())
-            outputStream.flush()
+            val ireader = BufferedReader(InputStreamReader(process.inputStream))
+            var iline: String? = ""
+            while (true) {
+                ireader.readLine()?.also {
+                    iline = it
+                }
+                println(iline)
+                if (iline?.contains("EVENT: TUN_IFACE_CREATE utun_error: cannot open available utun device [FATAL-ERR]") == true) {
+                    executeOsa {
+                        if (it)
+                            execute(path, callback)
+                        else
+                            callback("Failed")
+                    }
+                }
 
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
-            var line: String?
-            while (reader.readLine().also { line = it } != null) {
-                println(line)
             }
         }
 
@@ -104,10 +111,57 @@ class VpnRunner {
                 println("Job completed successfully.")
             }
         }
+    }
 
-//        val exitCode = process.waitFor()
+    private fun executeOsa(callback: (Boolean) -> Unit) {
+        // Execute the whoami command to get the current user
+        val processBuilderWhoami = ProcessBuilder("whoami")
+        val processWhoami = processBuilderWhoami.start()
+        val readerWhoami = BufferedReader(InputStreamReader(processWhoami.inputStream))
+        val username = readerWhoami.readLine().trim()
 
-//        println("Process exited with code: $exitCode")
+        // Replace "/path/to/command" with the actual path to your command
+        val command = pathBuilder()
+
+        // Build the AppleScript command for password prompt and command execution
+        val scriptCommand = "do shell script \"echo \'$username ALL=(ALL) NOPASSWD: $command\' | sudo tee -a /etc/sudoers.d/custom_sudoers\" with administrator privileges"
+
+        // Execute the AppleScript command using ProcessBuilder
+        val processBuilder = ProcessBuilder("osascript", "-e", scriptCommand)
+        val process = processBuilder.start()
+
+
+        // Read the output of the command
+        val reader = BufferedReader(InputStreamReader(process.errorStream))
+        var line: String?
+        while (reader.readLine().also { line = it } != null) {
+            println(line)
+        }
+
+        // Wait for the process to complete
+        val exitCode = process.waitFor()
+
+        if (exitCode == 0) {
+            println("Sudoers file modified successfully.")
+        } else {
+            println("Failed to modify sudoers file.")
+        }
+    }
+
+    fun terminate() {
+        val grepprocess = ProcessBuilder("pgrep", "ovpncli").start()
+        val reader = BufferedReader(InputStreamReader(grepprocess.inputStream))
+        val pid = reader.readLine()?.toIntOrNull()
+        reader.close()
+
+        if (pid != null) {
+            // Terminate the process using its PID
+            ProcessBuilder("sudo", "kill", pid.toString()).start().waitFor()
+//            process.destroy()
+            println("OpenVPN process with PID $pid terminated.")
+        } else {
+            println("OpenVPN process not found.")
+        }
     }
 
     private fun assembleOpenVPN(certificate: CertificateDocument): String {
