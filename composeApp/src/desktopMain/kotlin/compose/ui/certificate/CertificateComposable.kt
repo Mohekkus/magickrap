@@ -29,6 +29,7 @@ import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.*
 import compose.ui.certificate.component.*
+import compose.ui.reusable.minimalDialog
 import desktopConfig
 import http.base.AdditionalClient
 import http.base.GenericHandler
@@ -317,37 +318,54 @@ class CertificateComposable {
                             """.trimIndent()
                         )
 
+                        var retrievedString by remember {
+                            mutableStateOf("")
+                        }
+
+                        if (retrievedString.isNotEmpty()) {
+                            minimalDialog(retrievedString) {
+                                retrievedString = ""
+                            }
+                        }
+
                         FloatingActionButton(
                             modifier = Modifier.height(32.dp),
                             onClick = {
-                                if (VpnRunner.instance.status()) {
-                                    VpnRunner.instance.terminate()
-                                    return@FloatingActionButton
+                                VpnRunner.instance.apply {
+                                    if (status()) {
+                                        terminate()
+                                        return@FloatingActionButton
+                                    }
+
+                                    selecterCertificate?.let { start(it) {
+                                        retrievedString = it
+                                    } }
+
                                 }
 
-                                getCertificateCall(
-                                    servID = selectedServer?.id ?: return@FloatingActionButton,
-                                    onFailure = {
-//                                        genera
-                                    },
-                                    onSuccess = {
-                                        it.data?.items
-                                            ?.filter { it?.server?.id == selectedServer?.id }
-                                            ?.first { it?.protocols == selectedProtocol.key() }
-                                            .let {
-                                                if (it == null) return@getCertificateCall
-
-                                                it.document?.let { document ->
-                                                    VpnRunner.instance.start(document) {
-                                                        CoroutineScope(Dispatchers.IO).launch {
-                                                            delay(1000)
-                                                            ipaddress = "..."
-                                                        }
-                                                    }
-                                                }
-                                        }
-                                    }
-                                )
+//                                getCertificateCall(
+//                                    servID = selectedServer?.id ?: return@FloatingActionButton,
+//                                    onFailure = {
+////                                        genera
+//                                    },
+//                                    onSuccess = {
+//                                        it.data?.items
+//                                            ?.filter { it?.server?.id == selectedServer?.id }
+//                                            ?.first { it?.protocols == selectedProtocol.key() }
+//                                            .let {
+//                                                if (it == null) return@getCertificateCall
+//
+//                                                it.document?.let { document ->
+//                                                    VpnRunner.instance.start(document) {
+//                                                        CoroutineScope(Dispatchers.IO).launch {
+//                                                            delay(1000)
+//                                                            ipaddress = "..."
+//                                                        }
+//                                                    }
+//                                                }
+//                                        }
+//                                    }
+//                                )
                             }
                         ) {
                             Icon(

@@ -3,6 +3,7 @@ package vpn
 import CertificateDocument
 import appStorage
 import com.google.gson.Gson
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,13 +19,13 @@ class VpnRunner {
     private lateinit var path: String
     companion object {
         val instance = VpnRunner()
-        private const val PATH = "/Users/mohekkus/development/auxonode-desktop/composeApp/src/desktopMain/resources"
+        private val PATH = instance::class.java.classLoader.getResource("darwin/ovpn/ovpncli")?.path
         private const val PATH_OVPN = "ovpn/ovpncli"
         private const val PATH_WIREGUARD = "wireguard/wg-quick/darwin.bash"
     }
 
-    private fun pathBuilder() = StringJoiner("/")
-        .add(PATH).add(byOS()).add(provider())
+    private fun pathBuilder() = instance::class.java.classLoader.getResource("${byOS()}/${provider()}")?.path
+        ?.replace("file:", "")
 
     private fun byOS() =
         when (System.getProperty("os.name").lowercase()) {
@@ -36,7 +37,7 @@ class VpnRunner {
         when (appStorage.protocol()) {
             OPENVPN_UDP,
             OPENVPN_TCP -> PATH_OVPN
-            else -> "$PATH_WIREGUARD up"
+            else -> PATH_WIREGUARD
         }
 
     private fun option() =
@@ -47,6 +48,7 @@ class VpnRunner {
         }
 
     fun start(data: CertificateDocument, callback: (String) -> Unit) {
+//        pathBuilder()?.let { callback(it) }
         if (::process.isInitialized)
             if (process.isAlive) {
                 terminate()
@@ -67,7 +69,12 @@ class VpnRunner {
             if (appStorage.protocol() == WIREGUARD) assembleWireguard(data) else assembleOpenVPN(data)
 
         // Get the directory where the executable is located
-        val appDirectory = File(".").absoluteFile.parentFile
+        val appDirectory = when {
+            System.getProperty("os.name").startsWith("Windows") -> System.getenv("APPDATA")
+            System.getProperty("os.name").startsWith("Mac") -> "${System.getProperty("user.home")}/Library/Application Support"
+            else -> throw UnsupportedOperationException("Unsupported operating system")
+        }
+
 
         // File name with .txt extension
         val fileName = "temp.${
