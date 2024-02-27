@@ -2,6 +2,7 @@ package vpn
 
 import CertificateDocument
 import appStorage
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +19,8 @@ class VpnRunner {
     companion object {
         val instance = VpnRunner()
         private const val PATH = "/Users/mohekkus/development/auxonode-desktop/composeApp/src/desktopMain/resources"
+        private const val PATH_OVPN = "ovpn/ovpncli"
+        private const val PATH_WIREGUARD = "wireguard/wg-quick/darwin.bash"
     }
 
     private fun pathBuilder() = StringJoiner("/")
@@ -32,8 +35,8 @@ class VpnRunner {
     private fun provider() =
         when (appStorage.protocol()) {
             OPENVPN_UDP,
-            OPENVPN_TCP -> "ovpn/ovpncli"
-            else -> "wireguard/wg-quick/darwin.bash up"
+            OPENVPN_TCP -> PATH_OVPN
+            else -> "$PATH_WIREGUARD up"
         }
 
     private fun option() =
@@ -53,6 +56,11 @@ class VpnRunner {
         val path = makeConfiguration(data)
         execute(path, callback)
     }
+
+    fun status() =
+        if (::process.isInitialized)
+            if (process.isAlive) true else false
+        else false
 
     private fun makeConfiguration(data: CertificateDocument): String {
         val certificate =
@@ -85,20 +93,29 @@ class VpnRunner {
             process = Runtime.getRuntime().exec(command)
 
             val ireader = BufferedReader(InputStreamReader(process.inputStream))
+            val ereader = BufferedReader(InputStreamReader(process.errorStream))
             var iline: String? = ""
-            while (true) {
+            var eline: String? = ""
+            while (process.isAlive) {
                 ireader.readLine()?.also {
                     iline = it
                 }
                 println(iline)
-                if (iline?.contains("EVENT: TUN_IFACE_CREATE utun_error: cannot open available utun device [FATAL-ERR]") == true) {
+                if (iline?.contains("CONNECTING") == true)
+                    callback(iline.toString())
+
+                ereader.readLine()?.also {
+                    eline = it
+                }
+                println(eline)
+                if (eline?.contains("sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper") == true)
                     executeOsa {
                         if (it)
                             execute(path, callback)
                         else
                             callback("Failed")
                     }
-                }
+                else eline?.let { callback(it) }
 
             }
         }
@@ -113,6 +130,23 @@ class VpnRunner {
         }
     }
 
+    private fun sudoersPath() = StringJoiner(", ")
+        .add(
+            StringJoiner("/")
+                .add(PATH)
+                .add(byOS())
+                .add(PATH_OVPN)
+                .toString()
+        )
+        .add(
+            StringJoiner("/")
+                .add(PATH)
+                .add(byOS())
+                .add(PATH_WIREGUARD)
+                .toString()
+        )
+        .add("/bin/kill")
+
     private fun executeOsa(callback: (Boolean) -> Unit) {
         // Execute the whoami command to get the current user
         val processBuilderWhoami = ProcessBuilder("whoami")
@@ -121,7 +155,7 @@ class VpnRunner {
         val username = readerWhoami.readLine().trim()
 
         // Replace "/path/to/command" with the actual path to your command
-        val command = pathBuilder()
+        val command = sudoersPath()
 
         // Build the AppleScript command for password prompt and command execution
         val scriptCommand = "do shell script \"echo \'$username ALL=(ALL) NOPASSWD: $command\' | sudo tee -a /etc/sudoers.d/custom_sudoers\" with administrator privileges"
@@ -129,7 +163,6 @@ class VpnRunner {
         // Execute the AppleScript command using ProcessBuilder
         val processBuilder = ProcessBuilder("osascript", "-e", scriptCommand)
         val process = processBuilder.start()
-
 
         // Read the output of the command
         val reader = BufferedReader(InputStreamReader(process.errorStream))
@@ -143,20 +176,23 @@ class VpnRunner {
 
         if (exitCode == 0) {
             println("Sudoers file modified successfully.")
+            callback(true)
         } else {
             println("Failed to modify sudoers file.")
+            callback(false)
         }
     }
 
     fun terminate() {
-        val grepprocess = ProcessBuilder("pgrep", "ovpncli").start()
+        val grepprocess = Runtime.getRuntime().exec("pgrep ovpncli")
         val reader = BufferedReader(InputStreamReader(grepprocess.inputStream))
         val pid = reader.readLine()?.toIntOrNull()
         reader.close()
 
         if (pid != null) {
             // Terminate the process using its PID
-            ProcessBuilder("sudo", "kill", pid.toString()).start().waitFor()
+            Runtime.getRuntime().exec("sudo kill $pid")
+//            ProcessBuilder("sudo", "kill", pid.toString()).start().waitFor()
 //            process.destroy()
             println("OpenVPN process with PID $pid terminated.")
         } else {
@@ -166,19 +202,30 @@ class VpnRunner {
 
     private fun assembleOpenVPN(certificate: CertificateDocument): String {
         certificate.apply {
+            println(Gson().toJson(certificate))
+
             return StringJoiner("\n")
                 .add(config?.common?.joinToString("\n"))
                 .add("compress lz4\n" +
                         "comp-lzo no")
                 .add("key-direction ${config?.ca?.keyDirection}")
+
                 .add("<ca>")
-                .add("${config?.ca?.cert}</ca>")
+                .add("${config?.ca?.cert}")
+                .add("</ca>")
+
                 .add("<cert>")
-                .add("${client?.cert}</cert>")
+                .add("${client?.cert}")
+                .add("</cert>")
+
                 .add("<key>")
-                .add("${client?.key}</key>")
+                .add("${client?.key}")
+                .add("</key>")
+
                 .add("<tls-auth>")
-                .add("${config?.tls}</tls-auth>")
+                .add("${config?.tls}")
+                .add("</tls-auth>")
+
                 .toString()
                 .replace("?", "\n")
         }

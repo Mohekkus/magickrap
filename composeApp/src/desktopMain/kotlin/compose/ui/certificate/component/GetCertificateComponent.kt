@@ -98,77 +98,12 @@ fun getCertificateComponent(
             .verticalScroll(rememberScrollState())
             .padding(end = 24.dp),
     ) {
-        Text(
-            "Certificate",
-            style = MaterialTheme.typography.h5,
-            fontWeight = FontWeight(800),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        TextButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 18.dp),
-            onClick = {
-                protocolExpand = !protocolExpand
-            },
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            componentCard {
-                Text(
-                    "Protocol ${protocol.protocolText()}",
-                    style = MaterialTheme.typography.h6,
-                    fontWeight = FontWeight(600),
-                    color = Color.Black,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        if (protocolExpand)
-            componentCard(
-                modifier = Modifier
-                    .padding(bottom = 18.dp)
-            ) {
-                Column {
-                    protocolView(
-                        ProtocolStorage.PROTOCOL.WIREGUARD,
-                        protocol == ProtocolStorage.PROTOCOL.WIREGUARD
-                    ) {
-                        ProtocolStorage.PROTOCOL.WIREGUARD.apply {
-                            if (this != protocol) {
-                                protocol = this
-                                status = "Get"
-                            }
-                        }
-                        protocolExpand = !protocolExpand
-                    }
-                    protocolView(
-                        ProtocolStorage.PROTOCOL.OPENVPN_UDP,
-                        protocol == ProtocolStorage.PROTOCOL.OPENVPN_UDP
-                    ) {
-                        ProtocolStorage.PROTOCOL.OPENVPN_UDP.apply {
-                            if (this != protocol) {
-                                protocol = this
-                                status = "Get"
-                            }
-                        }
-                        protocolExpand = !protocolExpand
-                    }
-                    protocolView(
-                        ProtocolStorage.PROTOCOL.OPENVPN_TCP,
-                        protocol == ProtocolStorage.PROTOCOL.OPENVPN_TCP
-                    ) {
-                        ProtocolStorage.PROTOCOL.OPENVPN_TCP.apply {
-                            if (this != protocol) {
-                                protocol = this
-                                status = "Get"
-                            }
-                        }
-                        protocolExpand = !protocolExpand
-                    }
-                }
-            }
+//        Text(
+//            "Certificate",
+//            style = MaterialTheme.typography.h5,
+//            fontWeight = FontWeight(800),
+//            modifier = Modifier.padding(bottom = 16.dp)
+//        )
 
         Row(
             modifier = Modifier
@@ -222,43 +157,47 @@ fun getCertificateComponent(
                 )
         }
 
-        when (status) {
-            "" ->
-                when {
-                    certificateExpand ->
-                        componentCard(
-                            modifier = Modifier.padding(bottom = 18.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Text(
-                                    "Server: ${savedServer.hostName}",
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                                Text(
-                                    "Protocol: ${protocol.protocolText()}",
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                                Text(
-                                    "Certificate id: ${certificate?.client?.id.toString()}",
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                            }
-                        }
-                    certificate != null ->
-                        Button(
-                            modifier = Modifier.fillMaxSize(),
-                            onClick = {
-                                appVpn.start(data = certificate ?: return@Button) {
-
-                                }
-                            },
-                        ) {
-                            Text("Execute")
-                        }
+        if (status == "" && certificateExpand)
+            componentCard(
+                modifier = Modifier.padding(bottom = 18.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        "Server: ${savedServer.hostName}",
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        "Protocol: ${protocol.protocolText()}",
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        "Certificate id: ${certificate?.client?.id.toString()}",
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                 }
-        }
+            }
+
+//        when (status) {
+//            "" ->
+//
+//                when {
+//                    certificateExpand ->
+//
+//                    certificate != null ->
+//                        Button(
+//                            modifier = Modifier.fillMaxSize(),
+//                            onClick = {
+//                                appVpn.start(data = certificate ?: return@Button) {
+//
+//                                }
+//                            },
+//                        ) {
+//                            Text("Execute")
+//                        }
+//                }
+//        }
     }
 
     when (status) {

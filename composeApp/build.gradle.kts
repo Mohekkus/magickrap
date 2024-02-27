@@ -62,10 +62,12 @@ kotlin {
 
             //Multiplatform-Settings
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.1.1")
+
+            //Icon Pack
+            implementation("br.com.devsrsouza.compose.icons:font-awesome:1.1.0")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation("net.java.dev.jna:jna:5.10.0")
         }
         macos.dependencies {  }
     }

@@ -18,7 +18,10 @@ class AdditionalClient {
 
     fun client(url: String): HttpClient {
         return HttpClient(Java) {
-            install(HttpTimeout)
+            install(HttpTimeout) {
+                requestTimeoutMillis = 10000
+                connectTimeoutMillis = 10000
+            }
             install(Logging) {
                 logger = Logger.DEFAULT
                 level = LogLevel.ALL
