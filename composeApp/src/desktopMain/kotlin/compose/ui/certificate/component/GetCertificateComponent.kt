@@ -58,24 +58,18 @@ fun generateCertificateCall(
 @Composable
 fun getCertificateComponent(
     savedServer: ServerCertificateItem,
+    savedProtocol: ProtocolStorage.PROTOCOL,
     savingCertificate: (CertificateDocument?) -> Unit
 ) {
     var lastServer by remember {
         mutableStateOf(appStorage.saved())
     }
-
     var protocol by remember {
         mutableStateOf(appStorage.protocol())
-    }
-    var protocolExpand by remember {
-        mutableStateOf(false)
     }
 
     var certificate by remember {
         mutableStateOf(appStorage.document())
-    }
-    var certificateExpand by remember {
-        mutableStateOf(false)
     }
 
     var status by remember {
@@ -87,55 +81,41 @@ fun getCertificateComponent(
         mutableStateOf<String?>(null)
     }
 
-
     if (savedServer != lastServer) {
         lastServer = savedServer
         status = "Get"
     }
 
+    if (savedProtocol != protocol) {
+        protocol = savedProtocol
+        status = "Get"
+    }
+
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .padding(end = 24.dp),
+            .wrapContentWidth()
+            .fillMaxHeight()
     ) {
-//        Text(
-//            "Certificate",
-//            style = MaterialTheme.typography.h5,
-//            fontWeight = FontWeight(800),
-//            modifier = Modifier.padding(bottom = 16.dp)
-//        )
 
         Row(
             modifier = Modifier
-                .wrapContentSize()
-                .padding(bottom = 18.dp),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(
-                modifier = Modifier
-                    .weight(1f),
-                onClick = {
-                    if (status == "")
-                        certificateExpand = !certificateExpand
-                },
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                componentCard {
-                    Text(
-                        "$status Certificate",
-                        modifier = Modifier.fillMaxSize(),
-                        style = MaterialTheme.typography.h6,
-                        fontWeight = FontWeight(600)
-                    )
-                }
-            }
+            Text(
+                "$status Certificate",
+                style = MaterialTheme.typography.h5,
+                fontWeight = FontWeight(800),
+                modifier = Modifier.padding(bottom = 16.dp)
+                    .weight(.85f)
+            )
 
             if (status == "" || status == "Failed")
                 IconButton(
                     modifier = Modifier
                         .wrapContentSize()
                         .weight(.2f)
-                        .padding(start = 8.dp),
+                        .padding(bottom = 16.dp),
                     onClick = {
                         status = "Get"
                         certificate = null
@@ -151,16 +131,15 @@ fun getCertificateComponent(
                 CircularProgressIndicator(
                     modifier = Modifier
                         .wrapContentSize()
-                        .weight(.2f)
-                        .padding(start = 8.dp),
-                    strokeWidth = 8.dp
+                        .weight(.2f),
+                    strokeWidth = 4.dp
                 )
         }
 
-        if (status == "" && certificateExpand)
-            componentCard(
-                modifier = Modifier.padding(bottom = 18.dp)
-            ) {
+        componentCard(
+            modifier = Modifier.padding(bottom = 18.dp),
+        ) {
+            if (status == "")
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
@@ -177,33 +156,19 @@ fun getCertificateComponent(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
-            }
-
-//        when (status) {
-//            "" ->
-//
-//                when {
-//                    certificateExpand ->
-//
-//                    certificate != null ->
-//                        Button(
-//                            modifier = Modifier.fillMaxSize(),
-//                            onClick = {
-//                                appVpn.start(data = certificate ?: return@Button) {
-//
-//                                }
-//                            },
-//                        ) {
-//                            Text("Execute")
-//                        }
-//                }
-//        }
+            else
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+        }
     }
 
     when (status) {
         "Get", "Retrying" -> {
             appStorage.protocol(protocol.key())
-            certificateExpand = false
             getCertificateCall(
                 lastServer?.id ?: "",
                 onFailure = {

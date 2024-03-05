@@ -10,8 +10,11 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
@@ -61,7 +64,7 @@ class CertificateComposable {
         }
 
         CompositionLocalProvider(LocalKamelConfig provides desktopConfig) {
-            painter = asyncPainterResource("Auxonode.svg")
+            painter = asyncPainterResource("logo/Auxonode.svg")
         }
 
         var expandingServer by remember {
@@ -171,6 +174,7 @@ class CertificateComposable {
                             }
                         }
                     }
+
                     Box(modifier = Modifier.weight(1f)) {
 
                     }
@@ -193,90 +197,46 @@ class CertificateComposable {
                     }
                 }
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Box (
                     modifier = Modifier.wrapContentSize().padding(16.dp).weight(
                         if (expandingCertificate || expandingServer || expandingProtocol)
                             .7f
                         else .001f
                     )
                 ) {
-                    AnimatedVisibility(
-                        expandingServer,
-                        enter = expandIn(
-                            // Overwrites the default spring animation with tween
-                            animationSpec = tween(300, easing = LinearOutSlowInEasing),
-                        ) {
-                            // Overwrites the initial size to 50 pixels by 50 pixels
-                            IntSize(50, 50)
-                        },
-                        exit = shrinkOut(
-                            tween(300, easing = LinearOutSlowInEasing),
-                        ) { fullSize ->
-                            // Overwrites the target size of the shrinking animation.
-                            IntSize(fullSize.width / 10, fullSize.height / 5)
-                        }
-                    ) {
-                        Box(modifier = Modifier.weight(.7f)) {
+                    expandingComponent(
+                        {
                             selectedServer?.let { certificateItem ->
                                 serverCertificateComponent(certificateItem) {
-                                    expandingServer = false
+//                                        expandingServer = false
                                     selectedServer = it
                                 }
                             }
                         }
-                    }
+                        , expandingServer
+                    )
 
-                    AnimatedVisibility(
-                        expandingCertificate,
-                        enter = expandIn(
-                            // Overwrites the default spring animation with tween
-                            animationSpec = tween(300, easing = LinearOutSlowInEasing),
-                        ) {
-                            // Overwrites the initial size to 50 pixels by 50 pixels
-                            IntSize(50, 50)
-                        },
-                        exit = shrinkOut(
-                            tween(300, easing = LinearOutSlowInEasing),
-                        ) { fullSize ->
-                            // Overwrites the target size of the shrinking animation.
-                            IntSize(fullSize.width / 10, fullSize.height / 5)
-                        }
-                    ) {
-                        Box(modifier = Modifier.weight(.7f)) {
+                    expandingComponent(
+                        {
                             selectedServer?.let {
-                                getCertificateComponent(it) {
-                                    expandingCertificate = false
+                                getCertificateComponent(it, selectedProtocol) {
+//                                        expandingCertificate = false
                                 }
                             }
-                        }
-                    }
-
-
-                    AnimatedVisibility(
-                        expandingProtocol,
-                        enter = expandIn(
-                            // Overwrites the default spring animation with tween
-                            animationSpec = tween(300, easing = LinearOutSlowInEasing),
-                        ) {
-                            // Overwrites the initial size to 50 pixels by 50 pixels
-                            IntSize(50, 50)
                         },
-                        exit = shrinkOut(
-                            tween(300, easing = LinearOutSlowInEasing),
-                        ) { fullSize ->
-                            // Overwrites the target size of the shrinking animation.
-                            IntSize(fullSize.width / 10, fullSize.height / 5)
-                        }
-                    ) {
-                        Box(modifier = Modifier.weight(.7f)) {
+                        expandingCertificate
+                    )
+
+                    expandingComponent(
+                        {
                             getProtocolComponent(selectedProtocol) {
 //                                expandingProtocol = false
                                 selectedProtocol = it
                                 appStorage.protocol(it)
                             }
-                        }
-                    }
+                        },
+                        expandingProtocol
+                    )
                 }
 
                 var ipaddress by remember {
@@ -285,30 +245,34 @@ class CertificateComposable {
 
                 if (ipaddress == "...")
                     getIpAddress {
-                        if (it != null) {
+                        if (it != null)
                             ipaddress = it
-                        } else
-                            ipaddress = "..."
                     }
 
-                Card(
-                    modifier = Modifier.weight(1f).padding(start = 4.dp)
+                Column (
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 4.dp)
                 ) {
-                    val uriHandlker = LocalUriHandler.current
-                    Column {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(ipaddress)
-                            TextButton(
-                                onClick = { uriHandlker.openUri("https://checkip.amazonaws.com") }
+                    var log by remember {
+                        mutableStateOf("")
+                    }
+                    Card {
+                        val uriHandlker = LocalUriHandler.current
+                        Column (modifier = Modifier.padding(12.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Check Manually")
+                                Text(ipaddress)
+                                TextButton(
+                                    onClick = { uriHandlker.openUri("https://checkip.amazonaws.com") }
+                                ) {
+                                    Text("Check Manually")
+                                }
                             }
-                        }
 
-                        Text(
-                            """
+                            Text(
+                                """
                                 To ensure the application preview the working code please select:
                                 
                                 Protocol into OpenVPN_UDP
@@ -316,65 +280,44 @@ class CertificateComposable {
                                 
                                 Note this app still not properly showing status connection so please be patient
                             """.trimIndent()
-                        )
-
-                        var retrievedString by remember {
-                            mutableStateOf("")
-                        }
-
-                        if (retrievedString.isNotEmpty()) {
-                            minimalDialog(retrievedString) {
-                                retrievedString = ""
-                            }
-                        }
-
-                        FloatingActionButton(
-                            modifier = Modifier.height(32.dp),
-                            onClick = {
-                                VpnRunner.instance.apply {
-                                    if (status()) {
-                                        terminate()
-                                        return@FloatingActionButton
-                                    }
-
-                                    selecterCertificate?.let { start(it) {
-                                        retrievedString = it
-                                    } }
-
-                                }
-
-//                                getCertificateCall(
-//                                    servID = selectedServer?.id ?: return@FloatingActionButton,
-//                                    onFailure = {
-////                                        genera
-//                                    },
-//                                    onSuccess = {
-//                                        it.data?.items
-//                                            ?.filter { it?.server?.id == selectedServer?.id }
-//                                            ?.first { it?.protocols == selectedProtocol.key() }
-//                                            .let {
-//                                                if (it == null) return@getCertificateCall
-//
-//                                                it.document?.let { document ->
-//                                                    VpnRunner.instance.start(document) {
-//                                                        CoroutineScope(Dispatchers.IO).launch {
-//                                                            delay(1000)
-//                                                            ipaddress = "..."
-//                                                        }
-//                                                    }
-//                                                }
-//                                        }
-//                                    }
-//                                )
-                            }
-                        ) {
-                            Icon(
-                                FontAwesomeIcons.Solid.PowerOff,
-                                contentDescription = "Power On/Off",
-                                modifier = Modifier.padding(8.dp)
                             )
+
+                            FloatingActionButton(
+                                modifier = Modifier.height(32.dp),
+                                onClick = {
+                                    VpnRunner.instance.apply {
+                                        if (status()) {
+                                            terminate()
+                                            return@FloatingActionButton
+                                        }
+
+                                        selecterCertificate?.let { document ->
+                                            start(document) {
+                                                log += "\n$it"
+
+                                                if (it.contains("DISCONNECTED") || it.contains("CONNECTED"))
+                                                    ipaddress = "..."
+                                            }
+                                        }
+
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    FontAwesomeIcons.Solid.PowerOff,
+                                    contentDescription = "Power On/Off",
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                            }
                         }
                     }
+
+                    Text(
+                        log,
+                        modifier = Modifier.verticalScroll(
+                            rememberScrollState()
+                        )
+                    )
                 }
             }
         }
@@ -391,7 +334,38 @@ fun getIpAddress(callback: (String?) -> Unit) {
                     )
                 }
         } catch (e: Exception) {
-            getIpAddress(callback)
+            callback(e.message)
+//            getIpAddress(callback)
         }
+    }
+}
+
+@Composable
+fun expandingComponent(child: @Composable () -> Unit, isExpanding: Boolean) {
+    var expanding by remember {
+        mutableStateOf(isExpanding)
+    }
+
+    LaunchedEffect(isExpanding) {
+        expanding = isExpanding
+    }
+
+    AnimatedVisibility(
+        expanding,
+        enter = expandIn(
+            // Overwrites the default spring animation with tween
+            animationSpec = tween(300, easing = FastOutSlowInEasing),
+        ) {
+            // Overwrites the initial size to 50 pixels by 50 pixels
+            IntSize(50, 50)
+        },
+        exit = shrinkOut(
+            tween(300, easing = LinearOutSlowInEasing),
+        ) { fullSize ->
+            // Overwrites the target size of the shrinking animation.
+            IntSize(fullSize.width / 10, fullSize.height / 5)
+        }
+    ) {
+        child()
     }
 }

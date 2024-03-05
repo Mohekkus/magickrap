@@ -296,7 +296,6 @@ set_dns() {
 
 	cmd cp /etc/resolv.conf "/etc/resolv.conf.wg-quick-backup.$INTERFACE"
 	[[ ${#DNS_SEARCH[@]} -eq 0 ]] || cmd printf 'search %s\n' "${DNS_SEARCH[*]}" > /etc/resolv.conf
-	# shellcheck disable=SC2068
 	route nameserver ${REAL_INTERFACE} ${DNS[@]}
 }
 

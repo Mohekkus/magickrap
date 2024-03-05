@@ -1,9 +1,6 @@
 package compose.ui.certificate.component
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -22,32 +19,20 @@ fun getProtocolComponent(
     callback: (ProtocolStorage.PROTOCOL) -> Unit
 ) {
     var tempProtocol by remember {
-        mutableStateOf(protocol)
+        mutableStateOf(appStorage.protocol())
     }
-    var protocolExpand by remember {
-        mutableStateOf(true)
+
+    LaunchedEffect(protocol) {
+        tempProtocol = protocol
     }
 
     Column {
-        TextButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 18.dp),
-            onClick = {
-                protocolExpand = !protocolExpand
-            },
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            componentCard {
-                Text(
-                    "Protocol ${protocol.protocolText()}",
-                    style = MaterialTheme.typography.h6,
-                    fontWeight = FontWeight(600),
-                    color = Color.Black,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
+        Text(
+            "Protocol ${tempProtocol.protocolText()}",
+            style = MaterialTheme.typography.h5,
+            fontWeight = FontWeight(800),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
 
         componentCard(
@@ -58,19 +43,19 @@ fun getProtocolComponent(
                 ProtocolStorage.PROTOCOL.WIREGUARD.apply {
                     protocolView(
                         this,
-                        protocol == this
+                        tempProtocol == this
                     ) {
-                        callback(protocol)
+                        callback(this)
+                        tempProtocol = this
 //                        protocolExpand = !protocolExpand
                     }
                 }
                 ProtocolStorage.PROTOCOL.OPENVPN_UDP.apply {
                     protocolView(
                         this,
-                        protocol == this
+                        tempProtocol == this
                     ) {
-                        callback(protocol)
-                        appStorage.protocol(this)
+                        callback(this)
                         tempProtocol = this
 //                        protocolExpand = !protocolExpand
                     }
@@ -78,9 +63,10 @@ fun getProtocolComponent(
                 ProtocolStorage.PROTOCOL.OPENVPN_TCP.apply {
                     protocolView(
                         this,
-                        protocol == this
+                        tempProtocol == this
                     ) {
-                        callback(protocol)
+
+//                        callback(this)
 //                        protocolExpand = !protocolExpand
                     }
                 }

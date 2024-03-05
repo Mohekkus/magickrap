@@ -46,12 +46,13 @@ fun serverCertificateComponent(
     var serverList by remember {
         mutableStateOf(appStorage.servers())
     }
+    var localServer by remember {
+        mutableStateOf(appStorage.saved())
+    }
 
-    if (savedServer?.id != appStorage.saved()?.id)
-        savedServer?.let {
-            appStorage.save(it)
-            callback(it)
-        }
+    LaunchedEffect(savedServer) {
+        localServer = savedServer
+    }
 
     if (serverList != null)
         Column(
@@ -134,7 +135,7 @@ fun serverCertificateComponent(
                                             data.iconUrl,
                                             data.name
                                         ) {
-                                            if (savedServer?.id == data.id)
+                                            if (savedServer.id == data.id)
                                                 Row(
                                                     modifier = Modifier.fillMaxSize(),
                                                     horizontalArrangement = Arrangement.End
@@ -157,5 +158,4 @@ fun serverCertificateComponent(
         getServerCall {
             serverList = it.data?.items
         }
-
 }

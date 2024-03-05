@@ -3,42 +3,36 @@ package vpn
 import CertificateDocument
 import appStorage
 import com.google.gson.Gson
-import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import storage.directories.ProtocolStorage.PROTOCOL.*
+import vpn.essential.ExtractingSources
+import vpn.essential.ExtractingSources.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.util.StringJoiner
+import java.time.LocalDate
+import java.util.*
+import java.util.concurrent.TimeUnit
 
-class VpnRunner {
+class VpnRunner: Bulletin {
 
     private lateinit var process: Process
-    private lateinit var path: String
-    companion object {
-        val instance = VpnRunner()
-        private val PATH = instance::class.java.classLoader.getResource("darwin/ovpn/ovpncli")?.path
-        private const val PATH_OVPN = "ovpn/ovpncli"
-        private const val PATH_WIREGUARD = "wireguard/wg-quick/darwin.bash"
+
+    // Get the directory where the executable is located
+    private val appDirectory = when {
+        System.getProperty("os.name").startsWith("Windows") -> System.getenv("APPDATA")
+        System.getProperty("os.name").startsWith("Mac") -> "${System.getProperty("user.home")}/Library/Application Support/Auxonode - ${LocalDate.now()}/"
+        else -> throw UnsupportedOperationException("Unsupported operating system")
     }
 
-    private fun pathBuilder() = instance::class.java.classLoader.getResource("${byOS()}/${provider()}")?.path
-        ?.replace("file:", "")
+    companion object {
+        val instance = VpnRunner()
+    }
 
-    private fun byOS() =
-        when (System.getProperty("os.name").lowercase()) {
-            "windows" -> "windows"
-            else -> "darwin"
-        }
-
-    private fun provider() =
-        when (appStorage.protocol()) {
-            OPENVPN_UDP,
-            OPENVPN_TCP -> PATH_OVPN
-            else -> PATH_WIREGUARD
-        }
+    private var binariesCopier: ExtractingSources = ExtractingSources(this)
+    private var isPrepared = binariesCopier.isAvailable()
 
     private fun option() =
         when (appStorage.protocol()) {
@@ -47,16 +41,18 @@ class VpnRunner {
             else -> ""
         }
 
-    fun start(data: CertificateDocument, callback: (String) -> Unit) {
-//        pathBuilder()?.let { callback(it) }
-        if (::process.isInitialized)
-            if (process.isAlive) {
-                terminate()
-                return
-            }
 
-        val path = makeConfiguration(data)
-        execute(path, callback)
+    fun start(data: CertificateDocument, callback: (String) -> Unit) {
+        if (!isPrepared) {
+            binariesCopier.isAvailable()
+            callback(
+                "Please wait, our system still preparing Application full functionality"
+            )
+            return
+        }
+
+        val config = makeConfiguration(data)
+        execute(config, callback)
     }
 
     fun status() =
@@ -66,15 +62,8 @@ class VpnRunner {
 
     private fun makeConfiguration(data: CertificateDocument): String {
         val certificate =
-            if (appStorage.protocol() == WIREGUARD) assembleWireguard(data) else assembleOpenVPN(data)
-
-        // Get the directory where the executable is located
-        val appDirectory = when {
-            System.getProperty("os.name").startsWith("Windows") -> System.getenv("APPDATA")
-            System.getProperty("os.name").startsWith("Mac") -> "${System.getProperty("user.home")}/Library/Application Support"
-            else -> throw UnsupportedOperationException("Unsupported operating system")
-        }
-
+            if (appStorage.protocol() == WIREGUARD) assembleWireguard(data)
+            else assembleOpenVPN(data)
 
         // File name with .txt extension
         val fileName = "temp.${
@@ -91,70 +80,63 @@ class VpnRunner {
         return file.absoluteFile.absolutePath
     }
 
-
     private fun execute(path: String, callback: (String) -> Unit) {
-        val command = "sudo ${pathBuilder()} $path ${option()}"
-        println(command)
-
         val job = CoroutineScope(Dispatchers.IO).launch {
-            process = Runtime.getRuntime().exec(command)
+            process = ProcessBuilder("sudo", VpnConstant.getOvpn, path, "-c", "asym")
+                .apply {
+                    println(command())
+                }.start()
 
-            val ireader = BufferedReader(InputStreamReader(process.inputStream))
-            val ereader = BufferedReader(InputStreamReader(process.errorStream))
-            var iline: String? = ""
-            var eline: String? = ""
-            while (process.isAlive) {
-                ireader.readLine()?.also {
-                    iline = it
-                }
-                println(iline)
-                if (iline?.contains("CONNECTING") == true)
-                    callback(iline.toString())
+            val inputReader = process.inputReader()
+            val errorReader = process.errorReader()
+            var errorLine = ""
+            var inputLine = ""
 
-                ereader.readLine()?.also {
-                    eline = it
-                }
-                println(eline)
-                if (eline?.contains("sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper") == true)
+            while (
+                inputReader.readLine()?.also { inputLine = it } != null ||
+                errorReader.readLine()?.also { errorLine = it } != null
+            ) {
+                if (
+                    errorLine.contains(
+                        "sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper") ||
+                    errorLine.contains("sudo: a password is required"))
                     executeOsa {
-                        if (it)
+                        if (it.isEmpty())
                             execute(path, callback)
                         else
                             callback("Failed")
                     }
-                else eline?.let { callback(it) }
 
+                println(errorLine)
+                println(inputLine)
+
+                callback(inputLine.replace("EVENT:", ""))
+
+                errorLine = ""
+
+                if (!process.isAlive)
+                    callback("DISCONNECTED")
             }
+
+            process.waitFor(30, TimeUnit.SECONDS)
         }
 
-        // Optional: Handle the completion of the job
         job.invokeOnCompletion {
             it?.let {
-                println("Job failed: $it")
+                println(it.message)
             } ?: run {
-                println("Job completed successfully.")
+                println("finished")
             }
         }
     }
 
     private fun sudoersPath() = StringJoiner(", ")
         .add(
-            StringJoiner("/")
-                .add(PATH)
-                .add(byOS())
-                .add(PATH_OVPN)
-                .toString()
-        )
-        .add(
-            StringJoiner("/")
-                .add(PATH)
-                .add(byOS())
-                .add(PATH_WIREGUARD)
-                .toString()
+            VpnConstant.getOvpn.replace(" ", "\\\\ ")
         )
         .add("/bin/kill")
 
-    private fun executeOsa(callback: (Boolean) -> Unit) {
+    private fun executeOsa(callback: (String) -> Unit) {
         // Execute the whoami command to get the current user
         val processBuilderWhoami = ProcessBuilder("whoami")
         val processWhoami = processBuilderWhoami.start()
@@ -163,30 +145,37 @@ class VpnRunner {
 
         // Replace "/path/to/command" with the actual path to your command
         val command = sudoersPath()
+//        println(sudoersPath())
+//        return
 
         // Build the AppleScript command for password prompt and command execution
         val scriptCommand = "do shell script \"echo \'$username ALL=(ALL) NOPASSWD: $command\' | sudo tee -a /etc/sudoers.d/custom_sudoers\" with administrator privileges"
 
         // Execute the AppleScript command using ProcessBuilder
         val processBuilder = ProcessBuilder("osascript", "-e", scriptCommand)
-        val process = processBuilder.start()
+        val osaProcess = processBuilder.start()
 
         // Read the output of the command
-        val reader = BufferedReader(InputStreamReader(process.errorStream))
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            println(line)
+        val errReader = BufferedReader(InputStreamReader(osaProcess.errorStream))
+        val inReader = BufferedReader(InputStreamReader(osaProcess.inputStream))
+        while (osaProcess.isAlive) {
+            errReader.readLine()?.let {
+                println(it)
+            }
+            inReader.readLine()?.let {
+                println(it)
+            }
         }
 
         // Wait for the process to complete
-        val exitCode = process.waitFor()
+        val exitCode = osaProcess.waitFor()
 
         if (exitCode == 0) {
             println("Sudoers file modified successfully.")
-            callback(true)
+//            callback("")
         } else {
             println("Failed to modify sudoers file.")
-            callback(false)
+//            callback("Failed dunno why")
         }
     }
 
@@ -209,7 +198,7 @@ class VpnRunner {
 
     private fun assembleOpenVPN(certificate: CertificateDocument): String {
         certificate.apply {
-            println(Gson().toJson(certificate))
+//            println(Gson().toJson(certificate))
 
             return StringJoiner("\n")
                 .add(config?.common?.joinToString("\n"))
@@ -259,5 +248,13 @@ class VpnRunner {
                 }
                 .toString()
         }
+    }
+
+    override fun onPreparationComplete() {
+        isPrepared = true
+    }
+
+    override fun onPreparationFailed(message: String) {
+        println(message)
     }
 }

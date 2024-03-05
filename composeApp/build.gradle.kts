@@ -79,13 +79,14 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Auxonode - ${generateDate()}"
             packageVersion = "1.0.0"
             modules("java.instrument", "java.management", "java.net.http", "java.sql", "jdk.unsupported")
         }
         buildTypes.release.proguard {
-            isEnabled.set(true)
+            isEnabled.set(false)
             obfuscate.set(false)
         }
     }
