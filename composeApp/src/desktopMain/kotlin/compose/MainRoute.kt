@@ -3,6 +3,7 @@ package compose
 import androidx.compose.runtime.Composable
 import certificate
 import login
+import main
 
 
 enum class MainRoute {
@@ -17,7 +18,7 @@ enum class MainRoute {
     CERTIFICATE {
         @Composable
         override fun get(navigate: (MainRoute) -> Unit): @Composable () -> Unit = {
-            certificate.main {
+            main.main {
                 navigate.invoke(LOGIN)
             }
         }

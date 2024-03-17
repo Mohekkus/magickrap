@@ -35,9 +35,6 @@ import compose.ui.certificate.component.*
 import compose.ui.reusable.minimalDialog
 import desktopConfig
 import http.base.AdditionalClient
-import http.base.GenericHandler
-import http.base.wrapper.ResponseStatus
-import http.base.wrapper.ResponseWrapper
 import io.kamel.core.Resource
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
@@ -46,12 +43,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import vpn.VpnRunner
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeoutException
-import kotlin.concurrent.fixedRateTimer
 
 
 class CertificateComposable {
@@ -206,7 +199,7 @@ class CertificateComposable {
                 ) {
                     expandingComponent(
                         {
-                            selectedServer?.let { certificateItem ->
+                            selectedServer.let { certificateItem ->
                                 serverCertificateComponent(certificateItem) {
 //                                        expandingServer = false
                                     selectedServer = it

@@ -40,7 +40,7 @@ fun getServerCall(serverList: (ServerCertificateResponse) -> Unit) {
 @Preview
 @Composable
 fun serverCertificateComponent(
-    savedServer: ServerCertificateItem,
+    savedServer: ServerCertificateItem?,
     callback: (ServerCertificateItem) -> Unit
 ) {
     var serverList by remember {
@@ -135,7 +135,7 @@ fun serverCertificateComponent(
                                             data.iconUrl,
                                             data.name
                                         ) {
-                                            if (savedServer.id == data.id)
+                                            if (savedServer?.id == data.id)
                                                 Row(
                                                     modifier = Modifier.fillMaxSize(),
                                                     horizontalArrangement = Arrangement.End

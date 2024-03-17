@@ -2,10 +2,17 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import compose.MainRoute
+import compose.ui.MainComposable
 import compose.ui.certificate.CertificateComposable
 import compose.ui.login.LoginComposable
 import http.base.ClientModule
@@ -22,8 +29,11 @@ import vpn.VpnRunner
 val appStorage: Storage = Storage.instance
 val appVpn = VpnRunner.instance
 
+val primary = Color(0xFF0179fa)
+
 val login = LoginComposable()
 val certificate = CertificateComposable()
+val main = MainComposable()
 
 val desktopConfig = KamelConfig {
     takeFrom(KamelConfig.Default)
@@ -37,6 +47,11 @@ val desktopConfig = KamelConfig {
 }
 
 fun main() = application {
+    val windowsState = rememberWindowState().apply {
+        size = DpSize(500.dp, 700.dp)
+        position = WindowPosition(Alignment.BottomEnd)
+    }
+
     var route by remember {
         mutableStateOf(
             MainRoute.LOGIN
@@ -61,7 +76,8 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "Auxonode Desktop",
-        
+        resizable = false,
+        state = windowsState
     ) {
         Column {
             Box(modifier = Modifier.weight(1f)) {
