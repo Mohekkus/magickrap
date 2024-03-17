@@ -14,16 +14,11 @@ import androidx.compose.ui.unit.dp
 import compose.ui.reusable.minimalDialog
 import etc.DeviceInfo
 import http.ApiHandler
-import http.login.model.request.QRLoginPayload
 import http.login.model.response.QRLoginCreatedResponse
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.util.StringJoiner
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
 import kotlin.time.Duration.Companion.seconds
 
 fun apiCall(update: (QRLoginCreatedResponse) -> Unit) {
@@ -38,7 +33,7 @@ fun apiCall(update: (QRLoginCreatedResponse) -> Unit) {
 }
 
 @Composable
-fun qrLoginComposable() {
+fun qrLoginComposable(callback: () -> Unit) {
     var data by remember {
         mutableStateOf<QRLoginCreatedResponse?>(null)
     }
@@ -67,9 +62,9 @@ fun qrLoginComposable() {
                     }
 
                     LaunchedEffect(Unit) {
-                        while (timeleft >= 1) {
-                            delay(1.seconds)
-                            timeleft--
+                        fixedRateTimer("Progress Timer", true, 0, 1000) {
+                            if (timeleft < 1) cancel()
+                            timeleft --
                         }
 
                         data = null
@@ -131,4 +126,8 @@ fun progressTimer(time: Long, timeout: Long) {
     )
 
     Text(time.toString())
+}
+
+fun shortPolling() {
+
 }

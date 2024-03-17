@@ -11,11 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import appStorage
 import compose.ui.reusable.minimalDialog
 import http.ApiHandler
+import http.base.ClientModule
+import storage.directories.UserStorage
 
 @Composable
-fun codeLoginComposable() {
+fun codeLoginComposable(onLogged: () -> Unit) {
     var result by remember {
         mutableStateOf("")
     }
@@ -57,7 +60,11 @@ fun codeLoginComposable() {
 
                 ApiHandler.authentication.login(code,
                     onSuccess = {
-                        result = it.data?.accessToken ?: "You made a call, it succeeded but no token! Amazed"
+                        it.data?.accessToken?.apply {
+                            ClientModule.instance.bearerToken = toString()
+                            appStorage.logged(toString())
+                        }
+                        result = "Login Succeeded"
                     },
                     onFailure = {
                         warning = it
@@ -75,6 +82,9 @@ fun codeLoginComposable() {
             )
 
             minimalDialog(result) {
+                if (result == "Login Succeeded")
+                    onLogged.invoke()
+
                 result = ""
             }
         }

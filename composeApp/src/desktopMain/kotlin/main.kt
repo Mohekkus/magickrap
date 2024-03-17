@@ -1,27 +1,57 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import compose.MainRoute
+import compose.ui.MainComposable
 import compose.ui.certificate.CertificateComposable
 import compose.ui.login.LoginComposable
 import http.base.ClientModule
+import io.kamel.core.config.KamelConfig
+import io.kamel.core.config.takeFrom
+import io.kamel.image.config.Default
+import io.kamel.image.config.batikSvgDecoder
+import io.kamel.image.config.resourcesFetcher
+import io.kamel.image.config.svgDecoder
 import storage.Storage
+import vpn.VpnRunner
 
 
 val appStorage: Storage = Storage.instance
+val appVpn = VpnRunner.instance
+
+val primary = Color(0xFF0179fa)
 
 val login = LoginComposable()
 val certificate = CertificateComposable()
+val main = MainComposable()
+
+val desktopConfig = KamelConfig {
+    takeFrom(KamelConfig.Default)
+    // Available only on Desktop.
+    resourcesFetcher()
+    // Available only on Desktop.
+    // An alternative svg decoder
+    batikSvgDecoder()
+    // adds an SvgDecoder (SVG)
+    svgDecoder()
+}
 
 fun main() = application {
+    val windowsState = rememberWindowState().apply {
+        size = DpSize(500.dp, 700.dp)
+        position = WindowPosition(Alignment.BottomEnd)
+    }
+
     var route by remember {
         mutableStateOf(
             MainRoute.LOGIN
@@ -31,29 +61,36 @@ fun main() = application {
         mutableStateOf(false)
     }
 
+    if (update)
+        route = when (route) {
+            MainRoute.LOGIN ->
+                MainRoute.CERTIFICATE
+
+            else ->
+                MainRoute.LOGIN
+        }
+
     if (ClientModule.instance.bearerToken?.isNotEmpty() == true)
         route = MainRoute.CERTIFICATE
 
-
-    Window(onCloseRequest = ::exitApplication, title = "desktop") {
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "Auxonode Desktop",
+        resizable = false,
+        state = windowsState
+    ) {
         Column {
-//            TextButton(
-//                modifier = Modifier.wrapContentWidth(),
-//                onClick = {
-//                    route = when (route) {
-//                        MainRoute.LOGIN ->
-//                            MainRoute.CERTIFICATE
-//
-//                        else ->
-//                            MainRoute.LOGIN
-//
-//                    }
-//                }
-//            ) { }
-
             Box(modifier = Modifier.weight(1f)) {
                 route.get {
-                    update = true
+                    route = when (route) {
+                        MainRoute.LOGIN ->
+                            MainRoute.CERTIFICATE
+                        else -> {
+                            ClientModule.instance.bearerToken = null
+                            appStorage.logged("")
+                            MainRoute.LOGIN
+                        }
+                    }
                 }.invoke()
             }
         }

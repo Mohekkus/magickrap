@@ -23,4 +23,3 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
-include("vpn")

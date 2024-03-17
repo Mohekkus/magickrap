@@ -17,8 +17,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import appStorage
+import appVpn
 import compose.ui.reusable.componentCard
+import compose.ui.reusable.minimalDialog
 import http.ApiHandler
+import http.base.ClientModule
 import http.certificate.model.payload.CertificatePayload
 import http.certificate.model.response.CertificateResponse
 import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
@@ -55,145 +58,64 @@ fun generateCertificateCall(
 @Composable
 fun getCertificateComponent(
     savedServer: ServerCertificateItem,
+    savedProtocol: ProtocolStorage.PROTOCOL,
     savingCertificate: (CertificateDocument?) -> Unit
 ) {
     var lastServer by remember {
         mutableStateOf(appStorage.saved())
     }
-
     var protocol by remember {
         mutableStateOf(appStorage.protocol())
     }
-    var protocolExpand by remember {
-        mutableStateOf(false)
-    }
 
     var certificate by remember {
-        mutableStateOf<CertificateDocument?>(null)
-    }
-    var certificateExpand by remember {
-        mutableStateOf(false)
+        mutableStateOf(appStorage.document())
     }
 
     var status by remember {
-        mutableStateOf("Get")
+        mutableStateOf(
+            if (certificate == null) "Get" else ""
+        )
     }
-
+    var generateFailed by remember {
+        mutableStateOf<String?>(null)
+    }
 
     if (savedServer != lastServer) {
         lastServer = savedServer
         status = "Get"
     }
 
+    if (savedProtocol != protocol) {
+        protocol = savedProtocol
+        status = "Get"
+    }
+
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .padding(end = 24.dp),
+            .wrapContentWidth()
+            .fillMaxHeight()
     ) {
-        Text(
-            "Certificate",
-            style = MaterialTheme.typography.h6,
-            fontWeight = FontWeight(600),
-            color = Color.Black,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        TextButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 18.dp),
-            onClick = {
-                protocolExpand = !protocolExpand
-            },
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            componentCard {
-                Text(
-                    "Protocol ${protocol.protocolText()}",
-                    style = MaterialTheme.typography.h6,
-                    fontWeight = FontWeight(600),
-                    color = Color.Black,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        if (protocolExpand)
-            componentCard(
-                modifier = Modifier
-                    .padding(bottom = 18.dp)
-            ) {
-                Column {
-                    protocolView(
-                        ProtocolStorage.PROTOCOL.WIREGUARD,
-                        protocol == ProtocolStorage.PROTOCOL.WIREGUARD
-                    ) {
-                        ProtocolStorage.PROTOCOL.WIREGUARD.apply {
-                            if (this != protocol) {
-                                protocol = this
-                                status = "Get"
-                            }
-                        }
-                        protocolExpand = !protocolExpand
-                    }
-                    protocolView(
-                        ProtocolStorage.PROTOCOL.OPENVPN_UDP,
-                        protocol == ProtocolStorage.PROTOCOL.OPENVPN_UDP
-                    ) {
-                        ProtocolStorage.PROTOCOL.OPENVPN_UDP.apply {
-                            if (this != protocol) {
-                                protocol = this
-                                status = "Get"
-                            }
-                        }
-                        protocolExpand = !protocolExpand
-                    }
-                    protocolView(
-                        ProtocolStorage.PROTOCOL.OPENVPN_TCP,
-                        protocol == ProtocolStorage.PROTOCOL.OPENVPN_TCP
-                    ) {
-                        ProtocolStorage.PROTOCOL.OPENVPN_TCP.apply {
-                            if (this != protocol) {
-                                protocol = this
-                                status = "Get"
-                            }
-                        }
-                        protocolExpand = !protocolExpand
-                    }
-                }
-            }
 
         Row(
             modifier = Modifier
-                .wrapContentSize()
-                .padding(bottom = 18.dp),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(
-                modifier = Modifier
-                    .weight(1f),
-                onClick = {
-                    if (status == "")
-                        certificateExpand = !certificateExpand
-                },
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                componentCard {
-                    Text(
-                        "$status Certificate",
-                        modifier = Modifier.fillMaxSize(),
-                        style = MaterialTheme.typography.h6,
-                        fontWeight = FontWeight(600)
-                    )
-                }
-            }
+            Text(
+                "$status Certificate",
+                style = MaterialTheme.typography.h5,
+                fontWeight = FontWeight(800),
+                modifier = Modifier.padding(bottom = 16.dp)
+                    .weight(.85f)
+            )
 
-            if (status == "")
+            if (status == "" || status == "Failed")
                 IconButton(
                     modifier = Modifier
                         .wrapContentSize()
                         .weight(.2f)
-                        .padding(start = 8.dp),
+                        .padding(bottom = 16.dp),
                     onClick = {
                         status = "Get"
                         certificate = null
@@ -209,14 +131,15 @@ fun getCertificateComponent(
                 CircularProgressIndicator(
                     modifier = Modifier
                         .wrapContentSize()
-                        .weight(.2f)
-                        .padding(start = 8.dp),
-                    strokeWidth = 8.dp
+                        .weight(.2f),
+                    strokeWidth = 4.dp
                 )
         }
 
-        if (status == "" && certificateExpand)
-            componentCard {
+        componentCard(
+            modifier = Modifier.padding(bottom = 18.dp),
+        ) {
+            if (status == "")
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
@@ -233,51 +156,64 @@ fun getCertificateComponent(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
-            }
+            else
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+        }
     }
 
-    if (status == "Get" || status == "Retrying") {
-        appStorage.protocol(protocol.key())
-        certificateExpand = false
-
-        println("===============S")
-        println(savedServer.id)
-        getCertificateCall(
-            lastServer?.id ?: "",
-            onFailure = {
-                status = "Generate"
-            },
-            onSuccess = { response ->
-                status = "Processing"
-                response.data?.items?.first { it?.protocols == protocol.key() }.let {
-                    if (it == null) status = "Generate"
-                    else {
-                        status = ""
-                        certificate = it.document
+    when (status) {
+        "Get", "Retrying" -> {
+            appStorage.protocol(protocol.key())
+            getCertificateCall(
+                lastServer?.id ?: "",
+                onFailure = {
+                    status = "Generate"
+                },
+                onSuccess = { response ->
+                    status = "Processing"
+                    response.data?.items?.filter { it?.server?.id == lastServer?.id }?.first { it?.protocols == protocol.key() }.let {
+                        if (it == null) status = "Generate"
+                        else {
+                            status = ""
+                            certificate = it.document
+                            appStorage.document(it.document)
+                        }
                     }
                 }
-            }
-        )
+            )
+        }
+        "Generate" ->
+            generateCertificateCall(
+                savedServer.id ?: "",
+                onFailure = {
+                    generateFailed = it
+                    status = "Failed"
+                },
+                onSuccess = { response ->
+                    status = "Generated"
+                    response.data.let {
+                        if (it == null) status = "Retrying"
+                        else {
+                            status = ""
+                            certificate = it.document
+                        }
+                    }
+
+                }
+            )
+        "Failed" ->
+            if (generateFailed != null)
+                minimalDialog(
+                    generateFailed.toString()
+                ) {
+                    generateFailed = null
+                }
     }
-
-    if (status == "Generate")
-        generateCertificateCall(
-            savedServer.id ?: "",
-            onFailure = {
-                status = "Retrying"
-            },
-            onSuccess = { response ->
-                status = "Generated"
-                response.data.let {
-                    if (it == null) status = "Retrying"
-                    else {
-                        status = ""
-                        certificate = it.document
-                    }
-                }
-
-            }
-        )
 
 }
 

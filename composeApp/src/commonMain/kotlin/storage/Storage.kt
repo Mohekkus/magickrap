@@ -29,6 +29,7 @@ class Storage {
     fun deviceId() = user.device()
 
     // PROTOCOL
+    fun protocol(value: ProtocolStorage.PROTOCOL) = protocol.protocol(value.key())
     fun protocol(value: String) = protocol.protocol(value)
     fun protocol() = protocol.protocol()
     fun parameter() = protocol.parameter()

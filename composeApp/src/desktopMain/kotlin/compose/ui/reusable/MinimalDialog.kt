@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 
 @Preview
 @Composable
-fun minimalDialog(message: String, onDismissed: () -> Unit) {
+fun minimalDialog(message: String, dismissible: Boolean = true, onDismissed: () -> Unit) {
     AlertDialog(
         text = {
             Text(message)
@@ -17,13 +17,14 @@ fun minimalDialog(message: String, onDismissed: () -> Unit) {
             onDismissed()
         },
         buttons =  {
-            TextButton(
-                onClick = {
-                    onDismissed()
+            if (dismissible)
+                TextButton(
+                    onClick = {
+                        onDismissed()
+                    }
+                ) {
+                    Text("Ok")
                 }
-            ) {
-                Text("Ok")
-            }
         }
     )
 }
