@@ -1,4 +1,3 @@
-import org.gradle.internal.impldep.org.joda.time.DateTime
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import java.time.LocalDate
@@ -27,7 +26,6 @@ kotlin {
     
     sourceSets {
         val desktopMain by getting
-        val macos by creating
         
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -69,7 +67,6 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
         }
-        macos.dependencies {  }
     }
 }
 
@@ -79,6 +76,19 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
+//            macOS {
+//                bundleID = "com.auxonode.desktop"
+////                signing {
+////                    sign.set(false)
+////                    identity.set("Apple Development: muchammad.alfiansyah@rakhasa.com (S3HN26NKY6)")
+////                    keychain.set("/Users/mohekkus/Library/Keychains/login.keychain-db")
+////                }
+//                notarization {
+//                    appleID = "muchammad.alfiansyah@rakhasa.com"
+//                    password = "tkxh-fwav-ofxz-awku"
+//                    teamID = "9DS2YL5B28"
+//                }
+//            }
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Auxonode - ${generateDate()}"
