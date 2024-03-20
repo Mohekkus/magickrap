@@ -64,12 +64,13 @@ class CertificateHandler {
         ) {
             when (it.status) {
                 ResponseStatus.SUCCESS ->
-                    if (it.data == null)
+                    it.data?.let {
+                        println("exist?")
+                        Gson().fromJson(it.toString(), CertificateResponse::class.java)?.apply(onSuccess)
+                    } ?: run {
+                        println("Bonked?")
                         onFailure(ErrorMessages.SUCCESS_NO_DATA.value())
-                    else
-                        Gson().fromJson(it.data.toString(), CertificateResponse::class.java).apply {
-                            onSuccess(this)
-                        }
+                    }
 
                 else ->
                     if (it.data == null)

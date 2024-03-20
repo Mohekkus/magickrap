@@ -3,6 +3,7 @@
 #
 # Copyright (C) 2015-2020 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
 #
+export WG_QUICK_USERSPACE_IMPLEMENTATION="wireguard-go"
 
 set -e -o pipefail
 shopt -s extglob
@@ -11,7 +12,7 @@ export LC_ALL=C
 SELF="${BASH_SOURCE[0]}"
 [[ $SELF == */* ]] || SELF="./$SELF"
 SELF="$(cd "${SELF%/*}" && pwd -P)/${SELF##*/}"
-export PATH="/usr/bin/Auxonode:/bin/Auxonode:/usr/sbin/Auxonode:/sbin/Auxonode:${SELF%/*}:$PATH"
+export PATH="/usr/bin/:/bin/:/usr/sbin/:/sbin/:${SELF%/*}:$PATH"
 
 WG_CONFIG=""
 INTERFACE=""

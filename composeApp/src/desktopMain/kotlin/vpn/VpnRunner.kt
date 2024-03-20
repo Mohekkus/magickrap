@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import storage.directories.ProtocolStorage
 import storage.directories.ProtocolStorage.PROTOCOL.*
 import vpn.essential.ExtractingSources
 import vpn.essential.ExtractingSources.*
@@ -37,8 +38,8 @@ class VpnRunner: Bulletin {
     private fun option() =
         when (appStorage.protocol()) {
             OPENVPN_UDP,
-            OPENVPN_TCP -> "--compress asym"
-            else -> ""
+            OPENVPN_TCP -> listOf("--compress", "asym")
+            else -> listOf()
         }
 
 
@@ -82,10 +83,34 @@ class VpnRunner: Bulletin {
 
     private fun execute(path: String, callback: (String) -> Unit) {
         val job = CoroutineScope(Dispatchers.IO).launch {
-            process = ProcessBuilder("sudo", VpnConstant.getOvpn, path, "-c", "asym")
-                .apply {
-                    println(command())
-                }.start()
+            process =
+                when (appStorage.protocol()) {
+                    ProtocolStorage.PROTOCOL.OPENVPN_UDP,
+                    ProtocolStorage.PROTOCOL.OPENVPN_TCP ->
+                        ProcessBuilder("sudo", VpnConstant.getOvpn, path, "-c", "asym").start()
+                    else -> {
+                        File(VpnConstant.getBash).let {
+                            if (!it.canExecute())
+                                it.setExecutable(true)
+                        }
+
+                        File(VpnConstant.getWg).let {
+                            if (!it.canExecute())
+                                it.setExecutable(true)
+                        }
+
+                        File(VpnConstant.getGo).let {
+                            if (!it.canExecute())
+                                it.setExecutable(true)
+                        }
+
+                        ProcessBuilder("sudo", VpnConstant.getBash, VpnConstant.getWireguard, "up", path)
+                            .apply {
+                                println(this.command().toString().replace(",", ""))
+                            }
+                            .start()
+                    }
+                }
 
             val inputReader = process.inputReader()
             val errorReader = process.errorReader()
@@ -133,6 +158,15 @@ class VpnRunner: Bulletin {
     private fun sudoersPath() = StringJoiner(", ")
         .add(
             VpnConstant.getOvpn.replace(" ", "\\\\ ")
+        )
+        .add(
+            VpnConstant.getBash.replace(" ", "\\\\ ")
+        )
+        .add(
+            VpnConstant.getWg.replace(" ", "\\\\ ")
+        )
+        .add(
+            VpnConstant.getWireguard.replace(" ", "\\\\ ")
         )
         .add("/bin/kill")
 

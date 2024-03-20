@@ -2,7 +2,9 @@ package http.certificate.model.payload
 
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class CertificatePayload(
     @SerializedName("filter[server_city]")
     var filterserverCity: String? = null, // Helsinki

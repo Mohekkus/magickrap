@@ -28,9 +28,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import appStorage
-import compose.icons.FontAwesomeIcons
-import compose.icons.fontawesomeicons.Solid
-import compose.icons.fontawesomeicons.solid.*
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.*
 import compose.ui.certificate.component.*
 import compose.ui.reusable.minimalDialog
 import desktopConfig
@@ -132,7 +131,7 @@ class CertificateComposable {
                                 }
                             ) {
                                 Icon(
-                                    FontAwesomeIcons.Solid.StreetView,
+                                    FeatherIcons.Server,
                                     modifier = Modifier.padding(6.dp),
                                     contentDescription = "Server"
                                 )
@@ -146,7 +145,7 @@ class CertificateComposable {
                                 }
                             ) {
                                 Icon(
-                                    FontAwesomeIcons.Solid.ShieldAlt,
+                                    FeatherIcons.Shield,
                                     modifier = Modifier.padding(7.dp),
                                     contentDescription = "VPN Protocol"
                                 )
@@ -160,7 +159,7 @@ class CertificateComposable {
                                 }
                             ) {
                                 Icon(
-                                    FontAwesomeIcons.Solid.FileSignature,
+                                    FeatherIcons.File,
                                     modifier = Modifier.padding(6.dp),
                                     contentDescription = "Certificate"
                                 )
@@ -182,7 +181,7 @@ class CertificateComposable {
                             }
                         ) {
                             Icon(
-                                FontAwesomeIcons.Solid.EllipsisH,
+                                FeatherIcons.Settings,
                                 modifier = Modifier.padding(6.dp),
                                 contentDescription = "Server"
                             )
@@ -200,7 +199,7 @@ class CertificateComposable {
                     expandingComponent(
                         {
                             selectedServer.let { certificateItem ->
-                                serverCertificateComponent(certificateItem) {
+                                serverCertificateComponent(selectedServer) {
 //                                        expandingServer = false
                                     selectedServer = it
                                 }
@@ -297,7 +296,7 @@ class CertificateComposable {
                                 }
                             ) {
                                 Icon(
-                                    FontAwesomeIcons.Solid.PowerOff,
+                                    FeatherIcons.Power,
                                     contentDescription = "Power On/Off",
                                     modifier = Modifier.padding(8.dp)
                                 )

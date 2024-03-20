@@ -1,20 +1,31 @@
 package compose.ui
 
+import GeneratedCertificateResponse
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import compose.icons.AllIcons
-import compose.icons.FontAwesomeIcons
-import compose.icons.fontawesomeicons.Regular
-import compose.icons.fontawesomeicons.Solid
-import compose.icons.fontawesomeicons.solid.User
-import compose.icons.fontawesomeicons.solid.UserShield
-import compose.ui.reusable.minimalDialog
+import appStorage
+import compose.MainRoute
+import compose.icons.FeatherIcons
+import compose.icons.SimpleIcons
+import compose.icons.feathericons.Power
+import compose.icons.feathericons.Settings
+import compose.icons.feathericons.ShieldOff
+import compose.icons.simpleicons.Wireguard
+import compose.ui.certificate.component.getProtocolComponent
+import compose.ui.certificate.component.protocolText
+import compose.ui.certificate.component.serverCertificateComponent
 import etc.NetworkUtility
+import http.ApiHandler
+import http.certificate.model.payload.CertificatePayload
+import http.certificate.model.response.CertificateResponse
+import vpn.VpnRunner
 
 class MainComposable {
 
@@ -22,9 +33,40 @@ class MainComposable {
         val instance = MainComposable()
     }
 
+    fun getCertificateCall(
+        servID: String,
+        onFailure: (String) -> Unit,
+        onSuccess: (CertificateResponse) -> Unit
+    ) {
+        val payload = CertificatePayload(
+            filterserverId = servID,
+            sort = ""
+        )
+
+        ApiHandler.certificate.getCertificate(
+            payload,
+            { onFailure(it) },
+            { onSuccess(it) }
+        )
+    }
+
+    fun generateCertificateCall(
+        servID: String,
+        onFailure: (String) -> Unit,
+        onSuccess: (GeneratedCertificateResponse) -> Unit
+    ) {
+        ApiHandler.certificate.generateCertificate(appStorage.protocol().key(), servID,
+            { onFailure(it) }, { onSuccess(it) }
+        )
+    }
+
     @Preview
     @Composable
-    fun main(logout: () -> Unit) {
+    fun main(navigate: (MainRoute) -> Unit) {
+        var status by remember {
+            mutableStateOf("")
+        }
+
         var ipAddress by remember {
             mutableStateOf("...")
         }
@@ -34,44 +76,157 @@ class MainComposable {
                 ipAddress = it ?: "..."
             }
 
-        Column {
+        var selectedProtocol by remember {
+            mutableStateOf(appStorage.protocol())
+        }
+
+        var selectedServer by remember {
+            mutableStateOf(appStorage.saved())
+        }
+
+        var selectedCertificate by remember {
+            mutableStateOf(appStorage.document())
+        }
+
+        getProtocolComponent(selectedProtocol) {
+            selectedProtocol = it
+            appStorage.protocol(it)
+            status = "..."
+        }
+
+        serverCertificateComponent(selectedServer) {
+            selectedServer = it
+            appStorage.save(it)
+            status = "..."
+        }
+
+        if (status == "...")
+            getCertificateCall(
+                servID = selectedServer?.id ?: return,
+                onSuccess = {
+                    println("shitters")
+                    it.data?.items?.filter { it?.server?.id == selectedServer?.id }?.firstOrNull{
+                        it?.protocols == selectedProtocol.protocolText().lowercase()
+                    }?.let {
+                        status = ""
+                        selectedCertificate = it.document
+                        appStorage.document(it.document)
+                    } ?: run {
+                        status = "Generate"
+                    }
+                },
+                onFailure = {
+                    println(it)
+                    selectedCertificate = null
+                }
+            )
+
+        if (status == "Generate")
+            generateCertificateCall(
+                selectedServer?.id ?: run {
+                    status = "Selected Server is null"
+                    return
+                },
+                onFailure = {
+                    status = "Failed"
+                },
+                onSuccess = { response ->
+                    status = "Generated"
+                    response.data.let {
+                        if (it == null) status = "Retrying"
+                        else {
+                            status = ""
+                            selectedCertificate = it.document
+                        }
+                    }
+
+                }
+            )
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text("Current IP Address")
             Text(ipAddress)
 
             FloatingActionButton(
-                onClick =  {}
+                onClick =  {
+                    selectedCertificate?.let {
+                        VpnRunner.instance.start(it) {
+
+                        }
+                    } ?: run {
+                        println("no certificate")
+                    }
+                },
+                backgroundColor = Color.Green
             ) {
                 Icon(
                     modifier = Modifier
                         .size(128.dp)
                         .padding(24.dp),
-                    imageVector = FontAwesomeIcons.Solid.UserShield,
+                    imageVector =  FeatherIcons.Power,
+                    tint = Color.White,
                     contentDescription = "Toggle Connection Button"
                 )
             }
 
-            Text("This is VPN connection status placeholder")
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    FeatherIcons.ShieldOff,
+                    contentDescription = "Status"
+                )
 
-            Row {
-                Card {
-                    Row {
+                Text("You are unprotected")
+            }
 
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        Color.White
+                    ),
+                    onClick = {
+
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            SimpleIcons.Wireguard,
+                            contentDescription = "Protocol"
+                        )
+                        Box(modifier = Modifier.width(16.dp))
+
+                        Text("United State - United States 1")
                     }
                 }
                 Box(modifier = Modifier.padding(start = 8.dp, end = 8.dp))
                 IconButton(
                     modifier = Modifier.size(32.dp),
                     onClick = {
-
+                        navigate(MainRoute.LOGIN)
                     }
                 ) {
                     Icon(
-                        FontAwesomeIcons.Solid.User,
-                        contentDescription = "Profile"
+                        FeatherIcons.Settings,
+                        contentDescription = "Setting"
                     )
                 }
             }
         }
+    }
+
+    fun getCertificate(callback: () -> Unit) {
+
     }
 }
 

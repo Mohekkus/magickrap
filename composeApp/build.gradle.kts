@@ -35,6 +35,8 @@ kotlin {
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
 
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
+
             //Ktor core
             implementation("io.ktor:ktor-client-core:2.3.7")
             implementation("io.ktor:ktor-client-java:2.3.7")
@@ -61,8 +63,11 @@ kotlin {
             //Multiplatform-Settings
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.1.1")
 
-            //Icon Pack
-            implementation("br.com.devsrsouza.compose.icons:font-awesome:1.1.0")
+            //Simple Icon
+            implementation("br.com.devsrsouza.compose.icons:simple-icons:1.1.0")
+
+            //Feather Icon
+            implementation("br.com.devsrsouza.compose.icons:feather:1.1.0")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
