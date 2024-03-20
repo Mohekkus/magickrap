@@ -9,10 +9,10 @@ import java.util.StringJoiner
 object VpnConstant {
     private val PATH_APP = "Auxonode - ${LocalDate.now()}/Binaries"
     private const val PATH_OVPN = "ovpn/ovpncli"
-    private const val PATH_WIREGUARD = "wireguard/wg-quick/darwin.bash"
+    private const val PATH_WIREGUARD = "wireguard/wg-quick"
     private const val PATH_BASH = "wireguard/bash"
-    private const val PATH_WG = "wireguard/wg-quick/wg"
-    private const val PATH_GO = "wireguard/wg-quick/wireguard-go"
+    private const val PATH_WG = "wireguard/wg"
+    private const val PATH_GO = "wireguard/wireguard-go"
 
     val appDirectory =
         when {
@@ -91,11 +91,4 @@ object VpnConstant {
         )
             .toAbsolutePath()
             .toString()
-
-    val byProtocol =
-        when (appStorage.protocol()) {
-            ProtocolStorage.PROTOCOL.OPENVPN_UDP,
-            ProtocolStorage.PROTOCOL.OPENVPN_TCP -> getOvpn
-            else -> getWireguard
-        }
 }

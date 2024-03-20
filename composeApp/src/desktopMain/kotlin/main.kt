@@ -33,7 +33,7 @@ val primary = Color(0xFF0179fa)
 
 val login = LoginComposable()
 val certificate = CertificateComposable()
-val main = MainComposable()
+val main = MainComposable.instance
 
 val desktopConfig = KamelConfig {
     takeFrom(KamelConfig.Default)
@@ -74,7 +74,10 @@ fun main() = application {
         route = MainRoute.CERTIFICATE
 
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = {
+
+            exitApplication()
+        },
         title = "Auxonode Desktop",
         resizable = false,
         state = windowsState

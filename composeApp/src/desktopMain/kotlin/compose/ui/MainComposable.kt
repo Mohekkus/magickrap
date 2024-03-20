@@ -17,6 +17,7 @@ import compose.icons.SimpleIcons
 import compose.icons.feathericons.Power
 import compose.icons.feathericons.Settings
 import compose.icons.feathericons.ShieldOff
+import compose.icons.simpleicons.Openvpn
 import compose.icons.simpleicons.Wireguard
 import compose.ui.certificate.component.getProtocolComponent
 import compose.ui.certificate.component.protocolText
@@ -25,6 +26,7 @@ import etc.NetworkUtility
 import http.ApiHandler
 import http.certificate.model.payload.CertificatePayload
 import http.certificate.model.response.CertificateResponse
+import storage.directories.ProtocolStorage
 import vpn.VpnRunner
 
 class MainComposable {
@@ -94,18 +96,17 @@ class MainComposable {
             status = "..."
         }
 
-        serverCertificateComponent(selectedServer) {
-            selectedServer = it
-            appStorage.save(it)
-            status = "..."
-        }
+//        serverCertificateComponent(selectedServer) {
+//            selectedServer = it
+//            appStorage.save(it)
+//            status = "..."
+//        }
 
         if (status == "...")
             getCertificateCall(
                 servID = selectedServer?.id ?: return,
-                onSuccess = {
-                    println("shitters")
-                    it.data?.items?.filter { it?.server?.id == selectedServer?.id }?.firstOrNull{
+                onSuccess = { response ->
+                    response.data?.items?.filter { it?.server?.id == selectedServer?.id }?.firstOrNull{
                         it?.protocols == selectedProtocol.protocolText().lowercase()
                     }?.let {
                         status = ""
@@ -137,6 +138,7 @@ class MainComposable {
                         else {
                             status = ""
                             selectedCertificate = it.document
+                            appStorage.document(it.document)
                         }
                     }
 
@@ -153,9 +155,9 @@ class MainComposable {
 
             FloatingActionButton(
                 onClick =  {
-                    selectedCertificate?.let {
-                        VpnRunner.instance.start(it) {
-
+                    selectedCertificate?.let { document ->
+                        VpnRunner.instance.start(document) {
+                            println(it)
                         }
                     } ?: run {
                         println("no certificate")
@@ -201,12 +203,17 @@ class MainComposable {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            SimpleIcons.Wireguard,
+                            when (selectedProtocol) {
+                                ProtocolStorage.PROTOCOL.OPENVPN_UDP, ProtocolStorage.PROTOCOL.OPENVPN_TCP ->
+                                    SimpleIcons.Openvpn
+                                else ->
+                                    SimpleIcons.Wireguard
+                            },
                             contentDescription = "Protocol"
                         )
                         Box(modifier = Modifier.width(16.dp))
 
-                        Text("United State - United States 1")
+                        Text(selectedServer?.name.toString())
                     }
                 }
                 Box(modifier = Modifier.padding(start = 8.dp, end = 8.dp))
@@ -223,10 +230,6 @@ class MainComposable {
                 }
             }
         }
-    }
-
-    fun getCertificate(callback: () -> Unit) {
-
     }
 }
 

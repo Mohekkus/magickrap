@@ -15,7 +15,7 @@ class CertificateStorage {
     enum class DOCUMENT {
         CERTIFICATE;
 
-        private fun key() =name.lowercase()
+        private fun key() = name.lowercase()
         fun save(value: String) = value.save(key())
         fun load() = getString(key())
     }

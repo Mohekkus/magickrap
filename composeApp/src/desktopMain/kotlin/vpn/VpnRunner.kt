@@ -2,7 +2,6 @@ package vpn
 
 import CertificateDocument
 import appStorage
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,13 +34,6 @@ class VpnRunner: Bulletin {
     private var binariesCopier: ExtractingSources = ExtractingSources(this)
     private var isPrepared = binariesCopier.isAvailable()
 
-    private fun option() =
-        when (appStorage.protocol()) {
-            OPENVPN_UDP,
-            OPENVPN_TCP -> listOf("--compress", "asym")
-            else -> listOf()
-        }
-
 
     fun start(data: CertificateDocument, callback: (String) -> Unit) {
         if (!isPrepared) {
@@ -53,7 +45,7 @@ class VpnRunner: Bulletin {
         }
 
         val config = makeConfiguration(data)
-        execute(config, callback)
+        executeMacOs(config, callback)
     }
 
     fun status() =
@@ -81,13 +73,19 @@ class VpnRunner: Bulletin {
         return file.absoluteFile.absolutePath
     }
 
-    private fun execute(path: String, callback: (String) -> Unit) {
+    private fun executeMacOs(path: String, callback: (String) -> Unit) {
         val job = CoroutineScope(Dispatchers.IO).launch {
             process =
                 when (appStorage.protocol()) {
                     ProtocolStorage.PROTOCOL.OPENVPN_UDP,
-                    ProtocolStorage.PROTOCOL.OPENVPN_TCP ->
+                    ProtocolStorage.PROTOCOL.OPENVPN_TCP -> {
+                        File(VpnConstant.getOvpn).let {
+                            if (!it.canExecute())
+                                it.setExecutable(true)
+                        }
+
                         ProcessBuilder("sudo", VpnConstant.getOvpn, path, "-c", "asym").start()
+                    }
                     else -> {
                         File(VpnConstant.getBash).let {
                             if (!it.canExecute())
@@ -124,10 +122,11 @@ class VpnRunner: Bulletin {
                 if (
                     errorLine.contains(
                         "sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper") ||
-                    errorLine.contains("sudo: a password is required"))
+                    errorLine.contains("sudo: a password is required")
+                    )
                     executeOsa {
                         if (it.isEmpty())
-                            execute(path, callback)
+                            executeMacOs(path, callback)
                         else
                             callback("Failed")
                     }
@@ -135,12 +134,21 @@ class VpnRunner: Bulletin {
                 println(errorLine)
                 println(inputLine)
 
-                callback(inputLine.replace("EVENT:", ""))
+                when (appStorage.protocol()) {
+                    ProtocolStorage.PROTOCOL.OPENVPN_UDP,
+                    ProtocolStorage.PROTOCOL.OPENVPN_TCP -> callback(inputLine.replace("EVENT:", ""))
+                    else -> {}
+                }
 
                 errorLine = ""
 
-                if (!process.isAlive)
-                    callback("DISCONNECTED")
+                when (appStorage.protocol()) {
+                    ProtocolStorage.PROTOCOL.OPENVPN_UDP,
+                    ProtocolStorage.PROTOCOL.OPENVPN_TCP ->
+                        if (!process.isAlive)
+                            callback("DISCONNECTED")
+                    else -> {}
+                }
             }
 
             process.waitFor(30, TimeUnit.SECONDS)
@@ -151,8 +159,24 @@ class VpnRunner: Bulletin {
                 println(it.message)
             } ?: run {
                 println("finished")
+                if (appStorage.protocol() == WIREGUARD)
+                    checkWireguard(callback)
             }
         }
+    }
+
+    private fun checkWireguard(callback: (String) -> Unit) {
+        ProcessBuilder("sudo", VpnConstant.getWg)
+            .apply {
+
+            }
+            .start()
+            .apply {
+                if (inputReader().readLine()?.isEmpty() == true)
+                    callback("DISCONNECTED")
+                else
+                    callback("CONNECTED")
+            }
     }
 
     private fun sudoersPath() = StringJoiner(", ")
@@ -179,15 +203,12 @@ class VpnRunner: Bulletin {
 
         // Replace "/path/to/command" with the actual path to your command
         val command = sudoersPath()
-//        println(sudoersPath())
-//        return
 
         // Build the AppleScript command for password prompt and command execution
         val scriptCommand = "do shell script \"echo \'$username ALL=(ALL) NOPASSWD: $command\' | sudo tee -a /etc/sudoers.d/custom_sudoers\" with administrator privileges"
 
         // Execute the AppleScript command using ProcessBuilder
-        val processBuilder = ProcessBuilder("osascript", "-e", scriptCommand)
-        val osaProcess = processBuilder.start()
+        val osaProcess = ProcessBuilder("osascript", "-e", scriptCommand).start()
 
         // Read the output of the command
         val errReader = BufferedReader(InputStreamReader(osaProcess.errorStream))
@@ -269,7 +290,8 @@ class VpnRunner: Bulletin {
                     client?.apply {
                         add("Address = $address")
                         add("PrivateKey = $privateKey")
-                        add("Port = $port")
+                        add("ListenPort = $port")
+                        add("DNS = $dns")
                     }
 
                     add("[Peer]")

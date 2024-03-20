@@ -5,10 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import http.certificate.model.response.ServerCertificateResponse
 import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
-import storage.directories.CertificateStorage
-import storage.directories.ProtocolStorage
-import storage.directories.ServerStorage
-import storage.directories.UserStorage
+import storage.directories.*
 
 class Storage {
 
@@ -20,6 +17,13 @@ class Storage {
     private val certificate = CertificateStorage.instance
     private val protocol = ProtocolStorage.instance
     private val server = ServerStorage.instance
+    private val connection = ConnectedStorage.instance
+
+    // VPN CONNECTED
+    fun setConnectedConfiguration(server: String, protocol: String, certificate: String) {
+        connection.save(server, protocol, certificate)
+    }
+    fun getConnectedConfiguration() = connection.load()
 
     // USER AUTHENTICATION
     fun logged(token: String) = user.token(token)
