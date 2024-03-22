@@ -10,22 +10,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
 import appStorage
 import compose.MainRoute
 import compose.icons.FeatherIcons
 import compose.icons.SimpleIcons
 import compose.icons.feathericons.Power
 import compose.icons.feathericons.Settings
+import compose.icons.feathericons.Shield
 import compose.icons.feathericons.ShieldOff
 import compose.icons.simpleicons.Openvpn
 import compose.icons.simpleicons.Wireguard
 import compose.ui.certificate.component.getProtocolComponent
 import compose.ui.certificate.component.protocolText
-import compose.ui.certificate.component.serverCertificateComponent
 import etc.NetworkUtility
 import http.ApiHandler
 import http.certificate.model.payload.CertificatePayload
 import http.certificate.model.response.CertificateResponse
+import logic.ConnectionLogic
 import storage.directories.ProtocolStorage
 import vpn.VpnRunner
 
@@ -66,7 +68,7 @@ class MainComposable {
     @Composable
     fun main(navigate: (MainRoute) -> Unit) {
         var status by remember {
-            mutableStateOf("")
+            mutableStateOf("DISCONNECT")
         }
 
         var ipAddress by remember {
@@ -83,12 +85,21 @@ class MainComposable {
         }
 
         var selectedServer by remember {
-            mutableStateOf(appStorage.saved())
+            mutableStateOf(appStorage.picked())
         }
 
         var selectedCertificate by remember {
             mutableStateOf(appStorage.document())
         }
+
+        var openSetting by remember {
+            mutableStateOf(false)
+        }
+
+        if (openSetting)
+            settingWindow {
+                openSetting = false
+            }
 
         getProtocolComponent(selectedProtocol) {
             selectedProtocol = it
@@ -108,10 +119,10 @@ class MainComposable {
                 onSuccess = { response ->
                     response.data?.items?.filter { it?.server?.id == selectedServer?.id }?.firstOrNull{
                         it?.protocols == selectedProtocol.protocolText().lowercase()
-                    }?.let {
+                    }?.document?.let {
                         status = ""
-                        selectedCertificate = it.document
-                        appStorage.document(it.document)
+                        selectedCertificate = it
+                        appStorage.document(it)
                     } ?: run {
                         status = "Generate"
                     }
@@ -155,12 +166,20 @@ class MainComposable {
 
             FloatingActionButton(
                 onClick =  {
+                    if (status != "DISCONNECT") {
+                        ConnectionLogic.instance.stop {
+                            status = "DISCONNECTED"
+                        }
+                        return@FloatingActionButton
+                    }
+
                     selectedCertificate?.let { document ->
                         VpnRunner.instance.start(document) {
-                            println(it)
+                            status = it
                         }
                     } ?: run {
                         println("no certificate")
+                        status = "..."
                     }
                 },
                 backgroundColor = Color.Green
@@ -179,11 +198,18 @@ class MainComposable {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    FeatherIcons.ShieldOff,
+                    if (status == "CONNECTED")
+                        FeatherIcons.Shield
+                    else FeatherIcons.ShieldOff,
                     contentDescription = "Status"
                 )
 
-                Text("You are unprotected")
+                Text(
+                    if (status == "CONNECTED")
+                        "You are protected"
+                    else
+                        "You are unprotected"
+                )
             }
 
             Row(
@@ -220,7 +246,7 @@ class MainComposable {
                 IconButton(
                     modifier = Modifier.size(32.dp),
                     onClick = {
-                        navigate(MainRoute.LOGIN)
+                        openSetting = true
                     }
                 ) {
                     Icon(
@@ -228,6 +254,17 @@ class MainComposable {
                         contentDescription = "Setting"
                     )
                 }
+            }
+        }
+    }
+
+    @Composable
+    fun settingWindow(callback: () -> Unit) {
+        Window(
+            onCloseRequest = callback
+        ) {
+            Row {
+
             }
         }
     }

@@ -13,6 +13,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import compose.MainRoute
 import compose.ui.MainComposable
+import compose.ui.SettingComposable
 import compose.ui.certificate.CertificateComposable
 import compose.ui.login.LoginComposable
 import http.base.ClientModule
@@ -34,6 +35,7 @@ val primary = Color(0xFF0179fa)
 val login = LoginComposable()
 val certificate = CertificateComposable()
 val main = MainComposable.instance
+val setting = SettingComposable.instance
 
 val desktopConfig = KamelConfig {
     takeFrom(KamelConfig.Default)
@@ -64,14 +66,14 @@ fun main() = application {
     if (update)
         route = when (route) {
             MainRoute.LOGIN ->
-                MainRoute.CERTIFICATE
+                MainRoute.MAIN
 
             else ->
                 MainRoute.LOGIN
         }
 
     if (ClientModule.instance.bearerToken?.isNotEmpty() == true)
-        route = MainRoute.CERTIFICATE
+        route = MainRoute.MAIN
 
     Window(
         onCloseRequest = {
@@ -85,15 +87,22 @@ fun main() = application {
         Column {
             Box(modifier = Modifier.weight(1f)) {
                 route.get {
-                    route = when (route) {
-                        MainRoute.LOGIN ->
-                            MainRoute.CERTIFICATE
-                        else -> {
-                            ClientModule.instance.bearerToken = null
-                            appStorage.logged("")
-                            MainRoute.LOGIN
-                        }
+                    route = when (it) {
+                        MainRoute.LOGIN -> MainRoute.LOGIN
+                        MainRoute.MAIN -> MainRoute.MAIN
+                        else -> route
                     }
+//                    route = when (route) {
+//                        MainRoute.LOGIN ->
+//                            MainRoute.CERTIFICATE
+//                        MainRoute.SETTING ->
+//                            MainRoute.SETTING
+//                        else -> {
+//                            ClientModule.instance.bearerToken = null
+//                            appStorage.logged("")
+//                            MainRoute.LOGIN
+//                        }
+//                    }
                 }.invoke()
             }
         }

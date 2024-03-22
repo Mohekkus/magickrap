@@ -3,7 +3,6 @@ package storage
 import CertificateDocument
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import http.certificate.model.response.ServerCertificateResponse
 import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
 import storage.directories.*
 
@@ -17,13 +16,9 @@ class Storage {
     private val certificate = CertificateStorage.instance
     private val protocol = ProtocolStorage.instance
     private val server = ServerStorage.instance
-    private val connection = ConnectedStorage.instance
 
     // VPN CONNECTED
-    fun setConnectedConfiguration(server: String, protocol: String, certificate: String) {
-        connection.save(server, protocol, certificate)
-    }
-    fun getConnectedConfiguration() = connection.load()
+
 
     // USER AUTHENTICATION
     fun logged(token: String) = user.token(token)
@@ -33,8 +28,7 @@ class Storage {
     fun deviceId() = user.device()
 
     // PROTOCOL
-    fun protocol(value: ProtocolStorage.PROTOCOL) = protocol.protocol(value.key())
-    fun protocol(value: String) = protocol.protocol(value)
+    fun protocol(value: ProtocolStorage.PROTOCOL) = protocol.protocol(value)
     fun protocol() = protocol.protocol()
     fun parameter() = protocol.parameter()
 
@@ -42,7 +36,7 @@ class Storage {
     fun document() = certificate.certificate()
     fun document(document: CertificateDocument?) {
         certificate.certificate(
-            Gson().toJson(document)
+            document ?: return
         )
     }
     fun document(block: (ProtocolStorage.PROVIDER, CertificateDocument?) -> Unit) =
@@ -81,6 +75,6 @@ class Storage {
 
 //    fun purge() = server.purge()
 
-    fun save(value: ServerCertificateItem) = server.save(value)
-    fun saved() = server.saved()
+    fun pick(value: ServerCertificateItem) = server.pick(value)
+    fun picked() = server.picked()
 }

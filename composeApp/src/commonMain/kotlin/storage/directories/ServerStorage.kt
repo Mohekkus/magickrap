@@ -11,12 +11,14 @@ class ServerStorage {
 
     companion object {
         val instance = ServerStorage()
-        val server = instance.saved()
+        val server = instance.picked()
     }
 
     enum class CLASSIFICATION {
         LIST,
         FAVORITE,
+
+        FETCHED,
         SAVED;
 
         private fun key(): String = name.lowercase()
@@ -64,17 +66,26 @@ class ServerStorage {
         }
     }
 
-    fun save(value: ServerCertificateItem) {
+    fun pick(value: ServerCertificateItem) {
         CLASSIFICATION.SAVED.save(
             Gson().toJson(value)
         )
     }
 
-    fun saved(): ServerCertificateItem? {
+    fun picked(): ServerCertificateItem? {
         val token = object : TypeToken<ServerCertificateItem>() {}
 
         return CLASSIFICATION.SAVED.load().toClass(token)
     }
 
-//    fun purge() = CLASSIFICATION.FAVORITE.save("")
+    fun fetched(value: ServerCertificateItem) {
+        CLASSIFICATION.FETCHED.save(
+            Gson().toJson(value)
+        )
+    }
+    fun fetched(): ServerCertificateItem? {
+        val token = object : TypeToken<ServerCertificateItem>() {}
+
+        return CLASSIFICATION.FETCHED.load().toClass(token)
+    }
 }

@@ -3,10 +3,7 @@ package compose.ui.certificate.component
 import CertificateDocument
 import GeneratedCertificateResponse
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -17,11 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import appStorage
-import appVpn
 import compose.ui.reusable.componentCard
 import compose.ui.reusable.minimalDialog
 import http.ApiHandler
-import http.base.ClientModule
 import http.certificate.model.payload.CertificatePayload
 import http.certificate.model.response.CertificateResponse
 import http.certificate.model.response.ServerCertificateResponse.ServerCertificateData.ServerCertificateItem
@@ -62,7 +57,7 @@ fun getCertificateComponent(
     savingCertificate: (CertificateDocument?) -> Unit
 ) {
     var lastServer by remember {
-        mutableStateOf(appStorage.saved())
+        mutableStateOf(appStorage.picked())
     }
     var protocol by remember {
         mutableStateOf(appStorage.protocol())
@@ -168,7 +163,7 @@ fun getCertificateComponent(
 
     when (status) {
         "Get", "Retrying" -> {
-            appStorage.protocol(protocol.key())
+            appStorage.protocol(protocol)
             getCertificateCall(
                 lastServer?.id ?: "",
                 onFailure = {

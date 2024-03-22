@@ -1,6 +1,5 @@
 package compose.ui.certificate.component
 
-import CertificateDocument
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,7 +23,6 @@ import http.certificate.model.response.ServerCertificateResponse.ServerCertifica
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import storage.directories.ProtocolStorage.PROTOCOL
 
 @Composable
 fun getServerCall(serverList: (ServerCertificateResponse) -> Unit) {
@@ -47,7 +45,7 @@ fun serverCertificateComponent(
         mutableStateOf(appStorage.servers())
     }
     var localServer by remember {
-        mutableStateOf(appStorage.saved())
+        mutableStateOf(appStorage.picked())
     }
 
     LaunchedEffect(savedServer) {

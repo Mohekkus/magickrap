@@ -17,6 +17,7 @@ with(tasks) {
 plugins {
     id("com.louiscad.complete-kotlin") version "1.1.0"
     kotlin("plugin.serialization") version "1.9.21"
+    id("dev.hydraulic.conveyor") version "1.9"
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.jetbrainsCompose)
 }
@@ -52,7 +53,7 @@ kotlin {
             implementation("io.ktor:ktor-serialization-gson:2.3.7")
 
             //Gson
-            implementation("com.google.code.gson:gson:2.10.1")
+            implementation("com.google.code.gson:gson:2.10")
 
             //QR
             implementation("io.github.alexzhirkevich:qrose:1.0.0-beta3")
@@ -81,27 +82,28 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
-//            macOS {
-//                bundleID = "com.auxonode.desktop"
-////                signing {
-////                    sign.set(false)
-////                    identity.set("Apple Development: muchammad.alfiansyah@rakhasa.com (S3HN26NKY6)")
-////                    keychain.set("/Users/mohekkus/Library/Keychains/login.keychain-db")
-////                }
+            macOS {
+                bundleID = "com.auxonode.desktop"
+                signing {
+                    sign.set(true)
+                    identity.set("Muchammad Al Fiansyah Putra")
+                    keychain.set("/Library/Keychains/System.keychain")
+                }
 //                notarization {
 //                    appleID = "muchammad.alfiansyah@rakhasa.com"
 //                    password = "tkxh-fwav-ofxz-awku"
 //                    teamID = "9DS2YL5B28"
 //                }
-//            }
+            }
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "Auxonode - ${generateDate()}"
+            packageName = "Auxonode Desktop"
             packageVersion = "1.0.0"
+            version = 1
             modules("java.instrument", "java.management", "java.net.http", "java.sql", "jdk.unsupported")
         }
         buildTypes.release.proguard {
-            isEnabled.set(false)
+            isEnabled.set(true)
             obfuscate.set(false)
         }
     }

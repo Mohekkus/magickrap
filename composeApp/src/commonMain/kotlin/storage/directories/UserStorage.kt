@@ -8,6 +8,7 @@ class UserStorage {
     companion object {
         val instance = UserStorage()
     }
+
     enum class CLASSIFICATION {
         TOKEN,
         `DEVICE-ID`;

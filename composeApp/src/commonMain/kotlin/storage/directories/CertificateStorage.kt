@@ -20,8 +20,10 @@ class CertificateStorage {
         fun load() = getString(key())
     }
 
-    fun certificate(document: String) {
-        DOCUMENT.CERTIFICATE.save(document)
+    fun certificate(document: CertificateDocument) {
+        DOCUMENT.CERTIFICATE.save(
+            Gson().toJson(document)
+        )
     }
 
     fun certificate(): CertificateDocument? {

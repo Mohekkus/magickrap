@@ -5,6 +5,7 @@ import appStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import storage.directories.ConnectedStorage
 import storage.directories.ProtocolStorage
 import storage.directories.ProtocolStorage.PROTOCOL.*
 import vpn.essential.ExtractingSources
@@ -30,6 +31,8 @@ class VpnRunner: Bulletin {
     companion object {
         val instance = VpnRunner()
     }
+
+    private var processid = -1L
 
     private var binariesCopier: ExtractingSources = ExtractingSources(this)
     private var isPrepared = binariesCopier.isAvailable()
@@ -103,10 +106,8 @@ class VpnRunner: Bulletin {
                         }
 
                         ProcessBuilder("sudo", VpnConstant.getBash, VpnConstant.getWireguard, "up", path)
-                            .apply {
-                                println(this.command().toString().replace(",", ""))
-                            }
                             .start()
+
                     }
                 }
 
@@ -123,20 +124,21 @@ class VpnRunner: Bulletin {
                     errorLine.contains(
                         "sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper") ||
                     errorLine.contains("sudo: a password is required")
-                    )
-                    executeOsa {
-                        if (it.isEmpty())
-                            executeMacOs(path, callback)
-                        else
-                            callback("Failed")
-                    }
+                    ) {
+                    executeOsa {}
+                    return@launch
+                }
 
                 println(errorLine)
                 println(inputLine)
 
                 when (appStorage.protocol()) {
                     ProtocolStorage.PROTOCOL.OPENVPN_UDP,
-                    ProtocolStorage.PROTOCOL.OPENVPN_TCP -> callback(inputLine.replace("EVENT:", ""))
+                    ProtocolStorage.PROTOCOL.OPENVPN_TCP -> inputLine.replace("EVENT:", "").let {
+                        callback(it)
+                        if (processid == -1L)
+                            processid = process.pid()
+                    }
                     else -> {}
                 }
 
@@ -145,8 +147,10 @@ class VpnRunner: Bulletin {
                 when (appStorage.protocol()) {
                     ProtocolStorage.PROTOCOL.OPENVPN_UDP,
                     ProtocolStorage.PROTOCOL.OPENVPN_TCP ->
-                        if (!process.isAlive)
+                        if (!process.isAlive) {
+                            processid = -1L
                             callback("DISCONNECTED")
+                        }
                     else -> {}
                 }
             }
@@ -158,24 +162,25 @@ class VpnRunner: Bulletin {
             it?.let {
                 println(it.message)
             } ?: run {
-                println("finished")
                 if (appStorage.protocol() == WIREGUARD)
                     checkWireguard(callback)
+                else
+                    callback("")
             }
         }
     }
 
     private fun checkWireguard(callback: (String) -> Unit) {
-        ProcessBuilder("sudo", VpnConstant.getWg)
-            .apply {
-
-            }
+        ProcessBuilder("sudo", VpnConstant.getWg, "show")
             .start()
             .apply {
-                if (inputReader().readLine()?.isEmpty() == true)
-                    callback("DISCONNECTED")
-                else
-                    callback("CONNECTED")
+                inputReader().readLine().let {
+                    println("is there input? $it")
+                    if (it.isEmpty())
+                        callback("DISCONNECTED")
+                    else
+                        callback("CONNECTED")
+                }
             }
     }
 
@@ -234,11 +239,50 @@ class VpnRunner: Bulletin {
         }
     }
 
-    fun terminate() {
-        val grepprocess = Runtime.getRuntime().exec("pgrep ovpncli")
-        val reader = BufferedReader(InputStreamReader(grepprocess.inputStream))
-        val pid = reader.readLine()?.toIntOrNull()
-        reader.close()
+    fun terminate(protocol: ProtocolStorage.PROTOCOL) {
+        when (protocol) {
+            ProtocolStorage.PROTOCOL.OPENVPN_UDP,
+            ProtocolStorage.PROTOCOL.OPENVPN_TCP ->
+                if (processid == -1L)
+                    forceTerminate(protocol)
+                else
+                    ProcessHandle.of(processid).get().destroy()
+
+            else -> wireguardTerminate()
+        }
+    }
+
+    private fun wireguardTerminate() {
+        println("is it terminating?")
+        checkWireguard {
+            println("is it connected? $it")
+            if (it == "CONNECTED") {
+                val terminating = ProcessBuilder("sudo", VpnConstant.getBash, VpnConstant.getWireguard, "down", VpnConstant.getConfig)
+                    .start()
+
+                while (terminating.isAlive) {
+                    terminating.errorReader().readLine()?.let {
+                        println(it)
+                    }
+                    terminating.inputReader().readLine()?.let {
+                        println(it)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun forceTerminate(protocol: ProtocolStorage.PROTOCOL) {
+        val grepprocess = Runtime.getRuntime().exec("pgrep ${
+            when (protocol) {
+                ProtocolStorage.PROTOCOL.OPENVPN_UDP,
+                ProtocolStorage.PROTOCOL.OPENVPN_TCP ->
+                    "ovpncli"
+                else -> 
+                    "wireguard"
+            }
+        }")
+        val pid = grepprocess.inputReader().readLine()?.toIntOrNull()
 
         if (pid != null) {
             // Terminate the process using its PID

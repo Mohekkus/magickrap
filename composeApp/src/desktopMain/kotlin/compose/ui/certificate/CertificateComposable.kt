@@ -8,34 +8,25 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import appStorage
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.*
 import compose.ui.certificate.component.*
-import compose.ui.reusable.minimalDialog
 import desktopConfig
 import http.base.AdditionalClient
 import io.kamel.core.Resource
-import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.kamel.image.config.LocalKamelConfig
 import io.ktor.client.request.*
@@ -70,7 +61,7 @@ class CertificateComposable {
         }
 
         var selectedServer by remember {
-            mutableStateOf(appStorage.saved())
+            mutableStateOf(appStorage.picked())
         }
         var selectedProtocol by remember {
             mutableStateOf(appStorage.protocol())
@@ -80,7 +71,7 @@ class CertificateComposable {
         }
 
         if (selectedProtocol != appStorage.protocol())
-            appStorage.protocol(selectedProtocol.key())
+            appStorage.protocol(selectedProtocol)
 
         MaterialTheme {
             Row {
@@ -279,7 +270,6 @@ class CertificateComposable {
                                 onClick = {
                                     VpnRunner.instance.apply {
                                         if (status()) {
-                                            terminate()
                                             return@FloatingActionButton
                                         }
 

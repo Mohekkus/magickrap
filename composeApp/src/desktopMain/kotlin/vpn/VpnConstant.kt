@@ -7,7 +7,8 @@ import java.time.LocalDate
 import java.util.StringJoiner
 
 object VpnConstant {
-    private val PATH_APP = "Auxonode - ${LocalDate.now()}/Binaries"
+    private val PATH_APP = "Auxonode - ${LocalDate.now()}/"
+    private val PATH_BINARIES = "Binaries/"
     private const val PATH_OVPN = "ovpn/ovpncli"
     private const val PATH_WIREGUARD = "wireguard/wg-quick"
     private const val PATH_BASH = "wireguard/bash"
@@ -34,17 +35,11 @@ object VpnConstant {
             else -> PATH_WIREGUARD
         }
 
-    val option =
-        when (appStorage.protocol()) {
-            ProtocolStorage.PROTOCOL.OPENVPN_UDP,
-            ProtocolStorage.PROTOCOL.OPENVPN_TCP -> "--compress asym"
-            else -> ""
-        }
-
 
     val getOvpn = Paths.get(
         StringJoiner("/")
             .add(appDirectory)
+            .add(PATH_BINARIES)
             .add(PATH_OVPN)
             .toString()
     )
@@ -55,6 +50,7 @@ object VpnConstant {
         Paths.get(
             StringJoiner("/")
                 .add(appDirectory)
+                .add(PATH_BINARIES)
                 .add(PATH_BASH)
                 .toString()
         )
@@ -65,6 +61,7 @@ object VpnConstant {
         Paths.get(
             StringJoiner("/")
                 .add(appDirectory)
+                .add(PATH_BINARIES)
                 .add(PATH_WG)
                 .toString()
         )
@@ -76,6 +73,7 @@ object VpnConstant {
         Paths.get(
             StringJoiner("/")
                 .add(appDirectory)
+                .add(PATH_BINARIES)
                 .add(PATH_GO)
                 .toString()
         )
@@ -86,7 +84,18 @@ object VpnConstant {
         Paths.get(
             StringJoiner("/")
                 .add(appDirectory)
+                .add(PATH_BINARIES)
                 .add(PATH_WIREGUARD)
+                .toString()
+        )
+            .toAbsolutePath()
+            .toString()
+
+    val getConfig =
+        Paths.get(
+            StringJoiner("/")
+                .add(appDirectory)
+                .add("temp.conf")
                 .toString()
         )
             .toAbsolutePath()
